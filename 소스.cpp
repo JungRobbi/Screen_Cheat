@@ -14,7 +14,7 @@
 
 #define WINDOWX 800
 #define WINDOWY 800
-#define pie 3.141592
+#define pie 3.1415
 
 using namespace std;
 
@@ -98,7 +98,7 @@ FILE* FL;
 int faceNum = 0;
 int Click = 0;
 bool key[256];
-int dir = 0;
+int dir = 0;					// 1p 방향
 bool jump = false;
 
 float mx = 0, my = 0, mz = 0;	// 1p 위치
