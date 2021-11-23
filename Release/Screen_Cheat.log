@@ -1,0 +1,65 @@
+﻿  소스.cpp
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(23,47): warning C4305: '인수': 'double'에서 '_Ty'(으)로 잘립니다.
+          with
+          [
+              _Ty=float
+          ]
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(211,1): warning C4326: 'main'의 반환 형식이 'int'이어야 하는데 'void'입니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(244,8): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(361,2): warning C4060: switch문에 'case' 또는 'default' 레이블이 없습니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(374,47): warning C4244: '+=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(375,47): warning C4244: '-=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(381,47): warning C4244: '-=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(382,47): warning C4244: '+=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(388,17): warning C4305: '+=': 'double'에서 'float'(으)로 잘립니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(392,17): warning C4305: '-=': 'double'에서 'float'(으)로 잘립니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(439,9): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(483,10): warning C4244: '초기화 중': 'T'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+          with
+          [
+              T=float
+          ]
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(483,37): warning C4244: '초기화 중': 'T'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+          with
+          [
+              T=float
+          ]
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(483,64): warning C4244: '초기화 중': 'T'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+          with
+          [
+              T=float
+          ]
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(460,3): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(474,3): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(476,4): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(481,4): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(491,9): warning C4244: '초기화 중': 'T'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+          with
+          [
+              T=float
+          ]
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(491,28): warning C4244: '초기화 중': 'T'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+          with
+          [
+              T=float
+          ]
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(491,47): warning C4244: '초기화 중': 'T'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+          with
+          [
+              T=float
+          ]
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(509,12): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(510,12): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(511,12): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(524,11): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(525,11): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(526,11): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(535,12): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(536,12): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\82107\source\repos\Screen_Cheat\Screen_Cheat\소스.cpp(537,12): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  코드를 생성하고 있습니다.
+  103 of 105 functions (98.1%) were compiled, the rest were copied from previous compilation.
+    4 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  코드를 생성했습니다.
+  Screen_Cheat.vcxproj -> C:\Users\82107\source\repos\Screen_Cheat\Release\Screen_Cheat.exe
