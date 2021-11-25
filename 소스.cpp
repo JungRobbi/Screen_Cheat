@@ -14,7 +14,7 @@
 
 #define WINDOWX 800
 #define WINDOWY 800
-#define pie 3.1415
+#define pie 3.141592
 
 using namespace std;
 
