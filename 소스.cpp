@@ -115,8 +115,9 @@ FILE* FL;
 int faceNum = 0;
 int Click = 0;
 bool key[256];
-int game = 0;
+int game = 1;
 
+float msx, msy = 0;
 int dir = 0;					// 1p 방향
 bool jump = false;				// 1p 점프
 float mx = 0, my = 0, mz = 0;	// 1p 위치
@@ -145,7 +146,7 @@ BOOL CrossCheckfor4p(float x1, float  y1, float x2, float  y2, float x3, float  
 void InitTexture()
 {
 	BITMAPINFO* bmp;
-	string map[4] = { "A.png","B.png","C.png","D.png" };
+	string map[4] = { "A.jpg","B.png","C.png","D.png" };
 	glGenTextures(4, texture); //--- 텍스처 생성
 
 	for (int i = 0; i < 4; ++i) {
@@ -277,6 +278,7 @@ void main(int argc, char** argv) //--- 윈도우 출력하고 콜백함수 설정 { //--- 윈�
 
 	glutDisplayFunc(drawScene); //--- 출력 콜백 함수
 	glutReshapeFunc(Reshape);
+	printf("%f %f", msx, msy);
 	glutMainLoop();
 }
 
@@ -408,19 +410,11 @@ GLvoid Reshape(int w, int h) //--- 콜백 함수: 다시 그리기 콜백 함수
 }
 
 void Mouse(int button, int state, int x, int y)
-{
-	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-		Click = 1;
-
-		if (Time) {
-			Time = FALSE;
+{	
+	if (game == 0) {
+		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+			
 		}
-		else {
-			Time = TRUE;
-		}
-	}
-	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
-		Click = 0;
 	}
 }
 
