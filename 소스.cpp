@@ -104,6 +104,9 @@ bool jump = false;
 float mx = 0, my = 0, mz = 0;	// 1p 위치
 float fpsy = 0;					// 1p 좌 우 시야
 float fpsup = 0;				// 1p 위 아래 시야
+float walkmove = 0;				// 1p 걷는 흔들림
+bool walkmove2 = false;
+int walkmove3 = 0;
 
 float color[3] = { 1.0,1.0,1.0 };
 
@@ -280,7 +283,7 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 	Cp = glm::rotate(Cp, (float)glm::radians(fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	glm::vec3 cameraPos = glm::vec4(mx, my, mz, 0.0f);
-	glm::vec3 cameraDirection = glm::vec4(0.0, fpsup, -2.0, 0.0f) * Cp;
+	glm::vec3 cameraDirection = glm::vec4(0.0, fpsup+walkmove, -2.0, 0.0f) * Cp;
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	Vw = glm::lookAt(cameraPos, cameraPos + cameraDirection, cameraUp);
@@ -295,8 +298,8 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 
 	TR = glm::mat4(1.0f);
 	modelLocation = glGetUniformLocation(shaderID, "model");
-	TR = glm::translate(TR, glm::vec3(0.0f, -0.1f, 0.0f));
-	TR = glm::scale(TR, glm::vec3(3.0, 0.1, 3.0));
+	TR = glm::translate(TR, glm::vec3(0.0f, 1.5f, 0.0f));
+	TR = glm::scale(TR, glm::vec3(8.0, 4.0, 8.0));
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 	for (int j = 0; j < 12; ++j) {
@@ -369,6 +372,23 @@ void keyboard2(unsigned char key2, int x, int y) {
 
 void TimerFunction(int value) {
 	if (Time) {
+
+		if (key['v'] == true || key['b'] == true) {
+			if (walkmove2 == false) {
+				walkmove3 = 0;
+				walkmove += 0.003;
+				if (walkmove > 0.05) {
+					walkmove2 = true;
+				}
+			}
+			else {
+				walkmove -= 0.006;
+				if (walkmove < 0) {
+					walkmove2 = false;
+				}
+			}
+		}
+
 		if (key['v'] == true) {					// 1p 전진
 
 			mx += sin((float)glm::radians(fpsy)) * 0.01;
