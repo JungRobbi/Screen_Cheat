@@ -3,16 +3,19 @@
 in vec3 FragPos;
 in vec3 Normal;
 in vec3 outColor;
+in vec2 Tex;
 
 uniform vec3 cameraPos;
 uniform vec3 lightPos;
 uniform vec3 lightColor;
+uniform sampler2D outTex;
+uniform float alpha;
 
 out vec4 fColor;
 
 void main ()
 {
-  vec3 ambientLight = vec3(0.1f, 0.1f, 0.1f);
+  vec3 ambientLight = vec3(0.3f, 0.3f, 0.3f);
   vec3 ambient = ambientLight * lightColor;
   vec3 NV = normalize(Normal);
   vec3 lightDir = normalize(lightPos - FragPos);
@@ -28,5 +31,6 @@ void main ()
 
   vec3 result = (diffuse+specular+ambient) * outColor;
 
-  fColor = vec4((result), 1.0);
+  fColor = vec4((result), alpha);
+  fColor = texture(outTex, Tex) * fColor;
 }
