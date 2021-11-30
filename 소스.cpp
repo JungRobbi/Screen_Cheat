@@ -115,7 +115,7 @@ FILE* FL;
 int faceNum = 0;
 int Click = 0;
 bool key[256];
-int game = 1;
+int game = 0;
 
 float msx, msy = 0;
 int dir = 0;					// 1p ¹æÇâ
@@ -450,7 +450,7 @@ void TimerFunction(int value) {
 		if (key['v'] == true || key['b'] == true) {
 			if (walkmove2 == false) {
 				walkmove += 0.003;
-				if (walkmove > 0.05) {
+				if (walkmove > 0.03) {
 					walkmove2 = true;
 				}
 			}
