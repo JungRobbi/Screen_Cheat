@@ -1,7 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define WINDOWX 800
 #define WINDOWY 800
-#define pie 3.14159265358979324846
+#define pie 3.14159265358979324846 // 난 파이
 
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "freeglut.lib")
@@ -146,7 +146,7 @@ BOOL CrossCheckfor4p(float x1, float  y1, float x2, float  y2, float x3, float  
 void InitTexture()
 {
 	BITMAPINFO* bmp;
-	string map[4] = { "A.jpg","B.png","C.png","D.png" };
+	string map[4] = { "B.png","C.png","D.png" };
 	glGenTextures(4, texture); //--- 텍스처 생성
 
 	for (int i = 0; i < 4; ++i) {
