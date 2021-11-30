@@ -449,13 +449,13 @@ void TimerFunction(int value) {
 
 		if (key['v'] == true || key['b'] == true) {
 			if (walkmove2 == false) {
-				walkmove += 0.003;
+				walkmove += 0.002;
 				if (walkmove > 0.03) {
 					walkmove2 = true;
 				}
 			}
 			else {
-				walkmove -= 0.006;
+				walkmove -= 0.004;
 				if (walkmove < 0) {
 					walkmove2 = false;
 				}
@@ -464,15 +464,15 @@ void TimerFunction(int value) {
 
 		if (key['v'] == true) {					// 1p 전진
 
-			mx += sin((float)glm::radians(fpsy)) * 0.01;
-			mz -= cos((float)glm::radians(fpsy)) * 0.01;
+			mx += sin((float)glm::radians(fpsy)) * 0.02;
+			mz -= cos((float)glm::radians(fpsy)) * 0.02;
 			dir = 3;
 		}
 
 		if (key['b'] == true) {					// 1p 후진
 
-			mx -= sin((float)glm::radians(fpsy)) * 0.01;
-			mz += cos((float)glm::radians(fpsy)) * 0.01;
+			mx -= sin((float)glm::radians(fpsy)) * 0.02;
+			mz += cos((float)glm::radians(fpsy)) * 0.02;
 
 			dir = 0;
 		}
