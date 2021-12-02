@@ -115,7 +115,7 @@ FILE* FL;
 int faceNum = 0;
 int Click = 0;
 bool key[256];
-int game = 0;
+int game = 1;
 
 float msx, msy = 0;
 int dir = 0;					// 1p 방향
@@ -146,7 +146,7 @@ BOOL CrossCheckfor4p(float x1, float  y1, float x2, float  y2, float x3, float  
 void InitTexture()
 {
 	BITMAPINFO* bmp;
-	string map[4] = { "B.png","C.png","D.png" };
+	string map[4] = { "A.png","B.png","C.png","D.png" };
 	glGenTextures(4, texture); //--- 텍스처 생성
 
 	for (int i = 0; i < 4; ++i) {
@@ -268,6 +268,7 @@ void main(int argc, char** argv) //--- 윈도우 출력하고 콜백함수 설정 { //--- 윈�
 	InitTexture();
 	InitBuffer();
 
+	glutMouseFunc(Mouse);
 	glutMotionFunc(Motion);
 	glutPassiveMotionFunc(Motion2);
 	glutKeyboardFunc(keyboard);
@@ -278,7 +279,6 @@ void main(int argc, char** argv) //--- 윈도우 출력하고 콜백함수 설정 { //--- 윈�
 
 	glutDisplayFunc(drawScene); //--- 출력 콜백 함수
 	glutReshapeFunc(Reshape);
-	printf("%f %f", msx, msy);
 	glutMainLoop();
 }
 
@@ -335,7 +335,7 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 
 		glm::mat4 Pj = glm::mat4(1.0f);
 
-		Pj = glm::perspective(glm::radians(45.0f), (float)WINDOWX / (float)WINDOWY, 0.0005f, 10.0f);
+		Pj = glm::perspective(glm::radians(45.0f), (float)WINDOWX / (float)WINDOWY, 0.0005f, 20.0f);
 		glUniformMatrix4fv(projLocation, 1, GL_FALSE, &Pj[0][0]);
 
 		// 그리기 코드
@@ -343,7 +343,7 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 		TR = glm::mat4(1.0f);
 		modelLocation = glGetUniformLocation(shaderID, "model");
 		TR = glm::translate(TR, glm::vec3(0.0f, 1.5f, 0.0f));
-		TR = glm::scale(TR, glm::vec3(8.0, 4.0, 8.0));
+		TR = glm::scale(TR, glm::vec3(14.0, 4.0, 14.0));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 		for (int j = 0; j < 12; ++j) {
@@ -400,6 +400,42 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 
 	}
 
+	else if (game == 2) {																			// 맵 만들기
+		unsigned int color = glGetUniformLocation(shaderID, "outColor");
+		unsigned int modelLocation = glGetUniformLocation(shaderID, "model");
+		unsigned int viewLocation = glGetUniformLocation(shaderID, "view");
+		unsigned int projLocation = glGetUniformLocation(shaderID, "projection");
+
+		glm::mat4 Vw = glm::mat4(1.0f);
+		glm::mat4 Cp = glm::mat4(1.0f);
+
+		glm::vec3 cameraPos = glm::vec4(1.0, 0.0, 0.0, 0.0f);
+		glm::vec3 cameraDirection = glm::vec4(-1.0, 0.0, 0.0, 0.0f) * Cp;
+		glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+		Vw = glm::lookAt(cameraPos, cameraPos + cameraDirection, cameraUp);
+		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &Vw[0][0]);
+
+		glm::mat4 Pj = glm::mat4(1.0f);
+
+		Pj = Pj = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.00f);
+		glUniformMatrix4fv(projLocation, 1, GL_FALSE, &Pj[0][0]);
+
+		// 그리기 코드
+
+		TR = glm::mat4(1.0f);
+		modelLocation = glGetUniformLocation(shaderID, "model");
+		TR = glm::translate(TR, glm::vec3(0.0f, 0.0f, 0.0f));
+		TR = glm::scale(TR, glm::vec3(1.0, 2.0, 2.0));
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+
+		for (int j = 0; j < 12; ++j) {
+			Fvertex[0][j].Bind();
+			Fvertex[0][j].Draw();
+		}
+
+	}
+
 	glutSwapBuffers();
 	glutPostRedisplay();
 }
@@ -411,13 +447,26 @@ GLvoid Reshape(int w, int h) //--- 콜백 함수: 다시 그리기 콜백 함수
 
 void Mouse(int button, int state, int x, int y)
 {	
-	if (game == 0) {
+	msx = ((float)x - ((float)WINDOWX / (float)2)) / ((float)WINDOWX / (float)2);
+	msy = -((float)y - ((float)WINDOWY / (float)2)) / ((float)WINDOWY / (float)2);
+
+	if (game == 1) {
+
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-			
+
+			if (msx > -0.8 && msx<-0.2 && msy>-0.8 && msy < -0.2) {
+				game = 2;
+			}
+			else if (msx < 0.8 && msx > 0.2 && msy>-0.8 && msy < -0.2) {
+				game = 0;
+			}
+			printf("%f %f", msx, msy);
+
 		}
+
+		
 	}
 }
-
 void Motion(int x, int y)
 {
 
