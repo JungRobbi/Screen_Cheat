@@ -313,6 +313,7 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 	if (game == 0) {
@@ -340,27 +341,47 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 
 		// 그리기 코드
 
-		TR = glm::mat4(1.0f);
+		TR = glm::mat4(1.0f);																		// 맵
 		modelLocation = glGetUniformLocation(shaderID, "model");
 		TR = glm::translate(TR, glm::vec3(0.0f, 1.5f, 0.0f));
 		TR = glm::scale(TR, glm::vec3(14.0, 4.0, 14.0));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
+		Imagenum = 1;
+
 		for (int j = 0; j < 12; ++j) {
 			Fvertex[0][j].Bind();
 			Fvertex[0][j].Draw();
 		}
 
-		TR = glm::mat4(1.0f);
+		glEnable(GL_BLEND);																			
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		TR = glm::mat4(1.0f);																		// 나무상자
 		modelLocation = glGetUniformLocation(shaderID, "model");
 		TR = glm::translate(TR, glm::vec3(1.0f, -0.1f, 0.0f));
-		TR = glm::scale(TR, glm::vec3(0.5, 0.5, 0.5));
+		TR = glm::scale(TR, glm::vec3(0.4, 0.4, 0.4));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 		for (int j = 0; j < 12; ++j) {
 			Fvertex[0][j].Bind();
 			Fvertex[0][j].Draw();
 		}
+
+		Imagenum = 2;																				// 철창
+
+		TR = glm::mat4(1.0f);
+		modelLocation = glGetUniformLocation(shaderID, "model");
+		TR = glm::translate(TR, glm::vec3(1.5f, -0.1f, 0.0f));
+		TR = glm::scale(TR, glm::vec3(1.0, 1.0, 0.01));
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+
+		for (int j = 0; j < 12; ++j) {
+			Fvertex[0][j].Bind();
+			Fvertex[0][j].Draw();
+		}
+
+		glDisable(GL_BLEND);
 	}
 
 
@@ -418,7 +439,7 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 
 		glm::mat4 Pj = glm::mat4(1.0f);
 
-		Pj = Pj = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.00f);
+		Pj = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.00f);
 		glUniformMatrix4fv(projLocation, 1, GL_FALSE, &Pj[0][0]);
 
 		// 그리기 코드

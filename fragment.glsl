@@ -1,3 +1,4 @@
+
 #version 330 core
 
 in vec3 FragPos;
@@ -31,6 +32,15 @@ void main ()
 
   vec3 result = (diffuse+specular+ambient) * outColor;
 
-  fColor = vec4((result), alpha);
+  vec4 texcolor = texture(outTex, Tex);
+
+  if ( texcolor[0]+texcolor[1]+texcolor[2] <= 0.1 ){
+     fColor = vec4((result),0.0);
+  }
+  else {
+     fColor = vec4((result),10);
+  }
+  
   fColor = texture(outTex, Tex) * fColor;
+
 }
