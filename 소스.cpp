@@ -1,3 +1,4 @@
+#define  _CRT_SECURE_NO_WARNINGS
 #define STB_IMAGE_IMPLEMENTATION
 #define WINDOWX 800
 #define WINDOWY 800
@@ -6,6 +7,7 @@
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "freeglut.lib")
 #include <iostream>
+#include <vector>
 #include <gl/glew.h>
 #include <gl/freeglut.h>
 #include <gl/freeglut_ext.h>
@@ -17,6 +19,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <random>
 #include "stb_image.h"
+#include "shader.h"
+#include "objRead.cpp"
 
 using namespace std;
 
@@ -44,6 +48,13 @@ GLuint texture[4];
 int Imagenum = 0;
 int widthImage,heightImage,numberOfChannel = 0;
 
+// obj 읽기 관련
+int loadObj(const char* filename);
+int loadObj_normalize_center(const char* filename);
+float* sphere_object;
+int num_Triangle;
+float sunSize;
+
 class Plane {
 public:
 	GLfloat p[9];
@@ -53,8 +64,10 @@ public:
 
 	void Bind() {
 
+		num_Triangle = loadObj_normalize_center("sphere.obj");
+
 		glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(p), p, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 		glEnableVertexAttribArray(0);
 
@@ -72,7 +85,7 @@ public:
 		}
 
 		glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(n), n, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 		glEnableVertexAttribArray(2);
 
@@ -91,7 +104,7 @@ public:
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 	}
 };
 
