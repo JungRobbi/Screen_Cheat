@@ -283,12 +283,11 @@ void Display()
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		shape = 1;
 
 		TR = glm::mat4(1.0f);																		// 나무상자
 		modelLocation = glGetUniformLocation(s_program[0], "model");
 		TR = glm::translate(TR, glm::vec3(1.0f, -0.1f, 0.0f));
-		TR = glm::scale(TR, glm::vec3(0.4, 0.4, 0.4));
+		TR = glm::scale(TR, glm::vec3(0.2, 0.2, 0.2));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
