@@ -62,6 +62,7 @@ int loadObj_normalize_center(const char* filename);
 float* sphere_object;
 int num_Triangle;
 float sunSize;
+int shape = 0;					// 불러올 모양 (1. 육면체, 2. 구)
 
 // 텍스쳐 변수
 
@@ -154,8 +155,13 @@ int main(int argc, char** argv)
 
 
 void InitBuffer()
-{
-	num_Triangle = loadObj_normalize_center("cube.obj");
+{	
+	if (shape == 0) {
+		num_Triangle = loadObj_normalize_center("cube.obj");
+	}
+	else if (shape == 1) {
+		num_Triangle = loadObj_normalize_center("sphere.obj");
+	}
 
 	//// 5.1. VAO 객체 생성 및 바인딩
 	glGenVertexArrays(3, VAO);
@@ -276,6 +282,8 @@ void Display()
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		shape = 1;
 
 		TR = glm::mat4(1.0f);																		// 나무상자
 		modelLocation = glGetUniformLocation(s_program[0], "model");
