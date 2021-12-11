@@ -32,15 +32,17 @@ uniform_real_distribution<float> uid2(-1.0, 1.0);
 GLuint g_window_w = 800;
 GLuint g_window_h = 800;
 
-GLuint VAO[3];
-GLuint VBO_position[3];
-GLuint VBO_normal[3];
-GLuint VBO_uv[3];
+GLuint VAO[100];
+GLuint VBO_position[100];
+GLuint VBO_normal[100];
+GLuint VBO_uv[100];
 
 int polygon_mode = 2;
 
-const int num_vertices = 3;
-const int num_triangles = 1;
+int num_vertices = 3;
+int num_triangles = 1;
+int num_sphere = 0;
+int num_cube = 0;
 
 void keyboard(unsigned char, int, int);
 void keyboard2(unsigned char key2, int x, int y);
@@ -54,6 +56,8 @@ void InitBuffer();
 void InitTexture();
 void TimerFunction(int value);
 
+void InitBuffer_bind(const int);
+
 
 // obj 읽기 변수
 
@@ -62,7 +66,7 @@ int loadObj_normalize_center(const char* filename);
 float* sphere_object;
 int num_Triangle;
 float sunSize;
-int shape = 0;					// 불러올 모양 (1. 육면체, 2. 구)
+int shape = 1;					// 불러올 모양 (1. 육면체, 2. 구)
 
 // 텍스쳐 변수
 
@@ -72,6 +76,7 @@ int Imagenum = 0;
 int widthImage, heightImage, numberOfChannel = 0;
 
 // 게임 변수
+bool start = false;
 
 int game = 1;					// 게임 state
 int dir = 0;					// 1p 방향
@@ -121,7 +126,7 @@ int main(int argc, char** argv)
 	GLuint vShader[4];
 	GLuint fShader[4];
 
-	vShader[0]= MakeVertexShader("vertex.glvs", 0);
+	vShader[0] = MakeVertexShader("vertex.glvs", 0);
 	fShader[0] = MakeFragmentShader("fragment.glfs", 0);
 
 	// shader Program
@@ -155,44 +160,63 @@ int main(int argc, char** argv)
 
 
 void InitBuffer()
-{	
-	if (shape == 0) {
-		num_Triangle = loadObj_normalize_center("cube.obj");
-	}
-	else if (shape == 1) {
-		num_Triangle = loadObj_normalize_center("sphere.obj");
-	}
+{
 
 	//// 5.1. VAO 객체 생성 및 바인딩
-	glGenVertexArrays(3, VAO);
-	glGenBuffers(3, VBO_position);
-	glGenBuffers(3, VBO_normal);
-	glGenBuffers(3, VBO_uv);
+	glGenVertexArrays(10, VAO);
+	glGenBuffers(10, VBO_position);
+	glGenBuffers(10, VBO_normal);
+	glGenBuffers(10, VBO_uv);
 
-	// 2 triangles for quad floor
+
+	// obj가 새로 생기면 추가로 bind 하고, 번호에 맞는 VAO[n]을 써야함
+	InitBuffer_bind(0); // 0 : 정육면체, 1 : 구 
+	InitBuffer_bind(1);
+
+	glEnable(GL_DEPTH_TEST);
+}
+
+void InitBuffer_bind(const int street) {
+	if (street == 0) {
+		num_Triangle = loadObj_normalize_center("cube.obj");
+	}
+	else if (street == 1) {
+		num_sphere = loadObj_normalize_center("sphere.obj");
+	}
+
+
 	glUseProgram(s_program[0]);
-	glBindVertexArray(VAO[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_position[0]);
+	glBindVertexArray(VAO[street]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_position[street]);
 	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
 	GLint pAttribute = glGetAttribLocation(s_program[0], "aPos");
 	glVertexAttribPointer(pAttribute, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(pAttribute);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_normal[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_normal[street]);
 	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
 	GLint nAttribute = glGetAttribLocation(s_program[0], "aNormal");
 	glVertexAttribPointer(nAttribute, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(nAttribute);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_uv[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_uv[street]);
 	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec3), &outuv[0], GL_STATIC_DRAW);
 	GLint tAttribute = glGetAttribLocation(s_program[0], "aTex");
 	glVertexAttribPointer(tAttribute, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
 	glEnableVertexAttribArray(tAttribute);
 
+	outvertex = std::vector< glm::vec3 >(0.0f);  // 다음 obj 불러오기 위한 초기화
+	outnormal = std::vector< glm::vec3 >(0.0f);
+	outuv = std::vector< glm::vec2 >(0.0f);
 
-	glEnable(GL_DEPTH_TEST);
+	vertexIndices = std::vector< unsigned int >(0.0f);
+	uvIndices = std::vector< unsigned int >(0.0f);
+	normalIndices = std::vector< unsigned int >(0.0f);
+	temp_vertices = std::vector< glm::vec3 >(0.0f);
+	temp_uvs = std::vector< glm::vec2 >(0.0f);
+	temp_normals = std::vector< glm::vec3 >(0.0f);
 }
+
 
 void InitTexture()
 {
@@ -218,7 +242,7 @@ void InitTexture()
 }
 
 void Display()
-{   
+{
 
 	//*************************************************************************
 	// 출력 설정
@@ -266,11 +290,11 @@ void Display()
 	// 그리기 부분
 
 	glUseProgram(s_program[0]);
-	glBindVertexArray(VAO[0]);
+
 
 	if (game == 0) {
+		glBindVertexArray(VAO[0]);
 		TR = glm::mat4(1.0f);																		// 맵
-		modelLocation = glGetUniformLocation(s_program[0], "model");
 		TR = glm::translate(TR, glm::vec3(0.0f, 1.5f, 0.0f));
 		TR = glm::scale(TR, glm::vec3(10.0, 4.0, 10.0));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
@@ -280,31 +304,32 @@ void Display()
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-
+		glBindVertexArray(VAO[1]);
 		TR = glm::mat4(1.0f);																		// 나무상자
-		modelLocation = glGetUniformLocation(s_program[0], "model");
 		TR = glm::translate(TR, glm::vec3(1.0f, -0.1f, 0.0f));
 		TR = glm::scale(TR, glm::vec3(0.2, 0.2, 0.2));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+		glDrawArrays(GL_TRIANGLES, 0, num_sphere);
 
-		Imagenum = 2;																				// 철창
 
-		TR = glm::mat4(1.0f);
-		modelLocation = glGetUniformLocation(s_program[0], "model");
-		TR = glm::translate(TR, glm::vec3(1.5f, -0.1f, 0.0f));
-		TR = glm::scale(TR, glm::vec3(1.0, 1.0, 0.01));
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
-		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
-		glDisable(GL_BLEND);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // 블렌딩
+
+		//Imagenum = 2;																				// 철창
+		//glBindVertexArray(VAO[0]);
+		//TR = glm::mat4(1.0f);
+		//TR = glm::translate(TR, glm::vec3(1.5f, -0.1f, 0.0f));
+		//TR = glm::scale(TR, glm::vec3(1.0, 1.0, 0.01));
+		//glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+
+		//glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+		//glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+		glDisable(GL_BLEND); // 블렌딩 해제
 	}
 
 	else if (game == 1) {																			// 메인 화면
@@ -314,10 +339,6 @@ void Display()
 		lightColorLocation = glGetUniformLocation(s_program[0], "lightColor"); //--- lightColor 값 전달: (1.0, 1.0, 1.0) 백색
 		glUniform3f(lightColorLocation, 0.6, 0.6, 0.6);
 
-		unsigned int color = glGetUniformLocation(s_program[0], "outColor");
-		unsigned int modelLocation = glGetUniformLocation(s_program[0], "model");
-		unsigned int viewLocation = glGetUniformLocation(s_program[0], "view");
-		unsigned int projLocation = glGetUniformLocation(s_program[0], "projection");
 
 		glm::mat4 Vw = glm::mat4(1.0f);
 		glm::mat4 Cp = glm::mat4(1.0f);
@@ -335,9 +356,8 @@ void Display()
 		glUniformMatrix4fv(projLocation, 1, GL_FALSE, &Pj[0][0]);
 
 		// 그리기 코드
-
+		glBindVertexArray(VAO[0]);
 		TR = glm::mat4(1.0f);
-		modelLocation = glGetUniformLocation(s_program[0], "model");
 		TR = glm::translate(TR, glm::vec3(0.0f, 0.0f, 0.0f));
 		TR = glm::scale(TR, glm::vec3(0.5, 1.0, 1.0));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
@@ -348,10 +368,6 @@ void Display()
 	}
 
 	else if (game == 2) {																			// 맵 만들기
-		unsigned int color = glGetUniformLocation(s_program[0], "outColor");
-		unsigned int modelLocation = glGetUniformLocation(s_program[0], "model");
-		unsigned int viewLocation = glGetUniformLocation(s_program[0], "view");
-		unsigned int projLocation = glGetUniformLocation(s_program[0], "projection");
 
 		glm::mat4 Vw = glm::mat4(1.0f);
 		glm::mat4 Cp = glm::mat4(1.0f);
@@ -369,9 +385,8 @@ void Display()
 		glUniformMatrix4fv(projLocation, 1, GL_FALSE, &Pj[0][0]);
 
 		// 그리기 코드
-
+		glBindVertexArray(VAO[0]);
 		TR = glm::mat4(1.0f);
-		modelLocation = glGetUniformLocation(s_program[0], "model");
 		TR = glm::translate(TR, glm::vec3(0.0f, 0.0f, 0.0f));
 		TR = glm::scale(TR, glm::vec3(1.0, 2.0, 2.0));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
@@ -479,16 +494,27 @@ void TimerFunction(int value) {
 		fpsup -= 0.01;
 	}
 	if (key['a'] == true) {					// 1p 왼쪽
-		fpsy-=1.5;
+		fpsy -= 1.5;
 	}
 
 	if (key['d'] == true) {					// 1p 오른쪽
-		fpsy+=1.5;
+		fpsy += 1.5;
 	}
 
 	if (key['c'] == true) {
 		jump = true;
 	}
+
+	if (key['e'] == true) {
+		shape = 1;
+	}
+	if (key['r'] == true) {
+		shape = 2;
+	}
+	if (key['t'] == true) {
+		shape = 3;
+	}
+
 	glutPostRedisplay();
 
 	glutTimerFunc(10, TimerFunction, 1);
