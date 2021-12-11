@@ -79,16 +79,61 @@ int Imagenum = 0;
 int widthImage, heightImage, numberOfChannel = 0;
 
 // 게임 변수
-bool start = false;
 
 int game = 0;					// 게임 state
-int dir = 0;					// 1p 방향
-bool jump = false;				// 1p 점프
-float mx = 0, my = 0, mz = 0;	// 1p 위치
+
 float fpsy = 0;					// 1p 좌 우 시야
 float fpsup = 0;				// 1p 위 아래 시야
+float fpsy2 = 0;					// 1p 좌 우 시야
+float fpsup2 = 0;				// 1p 위 아래 시야
 float walkmove = 0;				// 1p 걷는 흔들림
 bool walkmove2 = false;
+
+float cx = 0;					// 카메라 x
+float cz = 0;					// 카메라 z
+float ry = 0;					// 회전
+float boxx[4];
+float boxy[4];
+
+int clone[5];					// 좀비
+float mx[6];					// 캐릭터들 x
+float my[6];					// 캐릭터들 y
+float mz[6];					// 캐릭터들 z
+float leg[6];					// 캐릭터들 다리 움직임
+float turn[6];					// 캐릭터들 돌기
+bool walk[6];					// 캐릭터들 걷기 체크1
+bool walk2[6];					// 캐릭터들 걷기 체크2
+bool jump[6];					// 캐릭터들 점프 체크
+float savey[6];					// 캐릭터들 점프 시 y저장
+int dir[6];						// 캐릭터들 방향
+
+float mousex = 0;				// 마우스 x
+float mousey = 0;				// 마우스 y
+
+float makelegX[5];				// 좀비 다리만들기 x
+float makelegY[5];				// 좀비 다리만들기 y
+float makehead[5];				// 좀비 머리만들기 x
+float makearmX[5];				// 좀비 팔만들기 x
+float makearmY[5];				// 좀비 팔만들기 y
+float makenose[5];				// 좀비 코만들기
+
+float boom[6];					// 캐릭터들 폭발
+bool fireball = false;			// 공격
+
+int dir2;						// 주인공의 마지막 움직임
+float clonespeed[5];			// 좀비 이동속도
+
+float turnY2 = 0;
+float boxturn = 0;
+int num = 0;
+float zsize = 1;
+
+int now;
+float color2[3];
+float fb[4];
+
+float dieing = 0;				// 죽는 애니메이션
+bool die[6];					// 캐릭터 죽음 체크
 
 // 응가 변수
 
@@ -96,6 +141,7 @@ glm::mat4 TR = glm::mat4(1.0f);
 int Click = 0;
 bool key[256];
 float msx, msy = 0;
+bool start = false;
 
 
 int main(int argc, char** argv)
@@ -268,7 +314,7 @@ void Display()
 
 	Cp = glm::rotate(Cp, (float)glm::radians(fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	glm::vec3 cameraPos = glm::vec4(mx, my, mz, 0.0f);
+	glm::vec3 cameraPos = glm::vec4(mx[0], my[0], mz[0], 0.0f);
 	glm::vec3 cameraDirection = glm::vec4(0.0, fpsup + walkmove, -2.0, 0.0f) * Cp;
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -293,19 +339,23 @@ void Display()
 	// 그리기 부분
 
 	glUseProgram(s_program[0]);
-
+		
+		
 
 	if (game == 0) {
+
+		Imagenum = 1;
+
 		glBindVertexArray(VAO[0]);
 		TR = glm::mat4(1.0f);																		// 맵
 		TR = glm::translate(TR, glm::vec3(0.0f, 4.5f, 0.0f));
 		TR = glm::scale(TR, glm::vec3(7.0, 10.0, 7.0));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
-		Imagenum = 1;
-
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+		Imagenum = 3;
 
 		glBindVertexArray(VAO[1]);
 		TR = glm::mat4(1.0f);																		// 나무상자
@@ -315,8 +365,6 @@ void Display()
 
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 		glDrawArrays(GL_TRIANGLES, 0, num_sphere);
-
-
 
 
 		glEnable(GL_BLEND);
@@ -459,17 +507,32 @@ void Mouse(int button, int state, int x, int y)
 
 
 	}
+	else if (game == 0) {
+		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+			mousex = ((float)x - ((float)WINDOWX / (float)2)) / ((float)WINDOWX / (float)2) * 90;
+			mousey = -((float)y - ((float)WINDOWY / (float)2)) / ((float)WINDOWY / (float)2) * 1.5;
+			Click = 1;
+		}
+		if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+			fpsy += fpsy2;
+			fpsup += fpsup2;
+			fpsy2 = 0;
+			fpsup2 = 0;
+			Click = 0;
+		}
+	}
 }
 void Motion(int x, int y)
-{
-
-
+{	
+	
 }
 
 void Motion2(int x, int y)
 {
-
-
+	if (game == 0) {
+		fpsy = ((float)x - ((float)WINDOWX / (float)2)) / ((float)WINDOWX / (float)2) * 180;
+		fpsup = -((float)y - ((float)WINDOWY / (float)2)) / ((float)WINDOWY / (float)2) * 1.5;
+	}
 }
 
 void keyboard(unsigned char key2, int x, int y) {
@@ -512,38 +575,33 @@ void TimerFunction(int value) {
 		}
 	}
 
-	if (key['v'] == true) {					// 1p 전진
-
-		mx += sin((float)glm::radians(fpsy)) * 0.03;
-		mz -= cos((float)glm::radians(fpsy)) * 0.03;
-		dir = 3;
+	if (key['w'] == true) {						// 위로 이동
+		walk[0] = true;
+		mx[0] += sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		mz[0] -= cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		dir[0] = 3;
+	}
+	if (key['s'] == true) {						// 아래로 이동
+		walk[0] = true;
+		mx[0] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		mz[0] += cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		dir[0] = 4;
+	}
+	if (key['a'] == true) {						// 왼쪽으로 이동
+		walk[0] = true;
+		mx[0] -= cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		mz[0] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		dir[0] = 2;
+	}
+	if (key['d'] == true) {						// 오른쪽으로 이동
+		walk[0] = true;
+		mx[0] += cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		mz[0] += sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		dir[0] = 1;
 	}
 
-	if (key['b'] == true) {					// 1p 후진
-
-		mx -= sin((float)glm::radians(fpsy)) * 0.03;
-		mz += cos((float)glm::radians(fpsy)) * 0.03;
-
-		dir = 0;
-	}
-
-	if (key['w'] == true) {					// 1p 위
-		fpsup += 0.01;
-	}
-
-	if (key['s'] == true) {					// 1p 아래
-		fpsup -= 0.01;
-	}
-	if (key['a'] == true) {					// 1p 왼쪽
-		fpsy -= 1.5;
-	}
-
-	if (key['d'] == true) {					// 1p 오른쪽
-		fpsy += 1.5;
-	}
-
-	if (key['c'] == true) {
-		jump = true;
+	if (key['f'] == true) {
+		jump[0] = true;
 	}
 
 	glutPostRedisplay();
