@@ -168,9 +168,7 @@ void InitBuffer()
 	glGenBuffers(10, VBO_normal);
 	glGenBuffers(10, VBO_uv);
 
-
-	// obj가 새로 생기면 추가로 bind 하고, 번호에 맞는 VAO[n]을 써야함
-	InitBuffer_bind(0); // 0 : 정육면체, 1 : 구 
+	InitBuffer_bind(0); // 0 : 정육면체, 1 : 구
 	InitBuffer_bind(1);
 
 	glEnable(GL_DEPTH_TEST);
@@ -181,7 +179,7 @@ void InitBuffer_bind(const int street) {
 		num_Triangle = loadObj_normalize_center("cube.obj");
 	}
 	else if (street == 1) {
-		num_sphere = loadObj_normalize_center("sphere.obj");
+		num_sphere = loadObj_normalize_center("Table.obj");
 	}
 
 
@@ -208,7 +206,7 @@ void InitBuffer_bind(const int street) {
 	outvertex = std::vector< glm::vec3 >(0.0f);  // 다음 obj 불러오기 위한 초기화
 	outnormal = std::vector< glm::vec3 >(0.0f);
 	outuv = std::vector< glm::vec2 >(0.0f);
-
+	
 	vertexIndices = std::vector< unsigned int >(0.0f);
 	uvIndices = std::vector< unsigned int >(0.0f);
 	normalIndices = std::vector< unsigned int >(0.0f);
