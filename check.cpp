@@ -14,7 +14,6 @@
 #include <time.h>
 #include <stdlib.h>
 #include <cmath>
-#include <cctype>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -22,7 +21,6 @@
 #include "stb_image.h"
 #include "shader.h"
 #include "objRead.cpp"
-
 
 using namespace std;
 
@@ -184,7 +182,7 @@ void InitBuffer_bind(const int street) {
 		num_Triangle = loadObj_normalize_center_3f("cube.obj");
 	}
 	else if (street == 1) {
-		num_sphere = loadObj_normalize_center_4f("t_34_obj.obj");
+		num_sphere = loadObj_normalize_center_4f("sohwajeon.obj");
 	}
 
 
@@ -298,8 +296,8 @@ void Display()
 	if (game == 0) {
 		glBindVertexArray(VAO[0]);
 		TR = glm::mat4(1.0f);																		// ¸Ê
-		TR = glm::translate(TR, glm::vec3(0.0f, 4.5f, 0.0f));
-		TR = glm::scale(TR, glm::vec3(7.0, 10.0, 7.0));
+		TR = glm::translate(TR, glm::vec3(0.0f, 1.5f, 0.0f));
+		TR = glm::scale(TR, glm::vec3(10.0, 4.0, 10.0));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 		Imagenum = 1;
@@ -310,7 +308,7 @@ void Display()
 		glBindVertexArray(VAO[1]);
 		TR = glm::mat4(1.0f);																		// ³ª¹«»óÀÚ
 		TR = glm::translate(TR, glm::vec3(0.0f, -0.1f, -2.0f));
-		TR = glm::scale(TR, glm::vec3(0.7, 0.4, 0.6));
+		TR = glm::scale(TR, glm::vec3(0.2, 0.2, 0.2));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
@@ -372,57 +370,30 @@ void Display()
 
 	else if (game == 2) {																			// ¸Ê ¸¸µé±â
 
-		glm::vec3 cameraPos = glm::vec4(0.0, 14.0, 0.0, 0.0f);
-		glm::vec3 cameraDirection = glm::vec4(0.0, -1.0, 0.0, 0.0f);
-		glm::vec3 cameraUp = glm::vec3(0.0f, 0.0f, -1.0f);
+		glm::mat4 Vw = glm::mat4(1.0f);
+		glm::mat4 Cp = glm::mat4(1.0f);
+
+		glm::vec3 cameraPos = glm::vec4(1.0, 0.0, 0.0, 0.0f);
+		glm::vec3 cameraDirection = glm::vec4(-1.0, 0.0, 0.0, 0.0f) * Cp;
+		glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 		Vw = glm::lookAt(cameraPos, cameraPos + cameraDirection, cameraUp);
 		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &Vw[0][0]);
 
 		glm::mat4 Pj = glm::mat4(1.0f);
 
-		Pj = glm::perspective(glm::radians(45.0f), (float)WINDOWX / (float)WINDOWY, 0.0005f, 40.0f);
+		Pj = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.00f);
 		glUniformMatrix4fv(projLocation, 1, GL_FALSE, &Pj[0][0]);
 
-
 		// ±×¸®±â ÄÚµå
-		Imagenum = 1;
-
-		glBindVertexArray(VAO[0]);
-		TR = glm::mat4(1.0f);																		// ¸Ê
-		TR = glm::translate(TR, glm::vec3(0.0f, 4.5f, 0.0f));
-		TR = glm::scale(TR, glm::vec3(7.0, 10.0, 7.0));
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
-
-		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
-
-		glBindVertexArray(VAO[1]);
-		TR = glm::mat4(1.0f);																		// ³ª¹«»óÀÚ
-		TR = glm::translate(TR, glm::vec3(0.0f, -0.1f, -2.0f));
-		TR = glm::scale(TR, glm::vec3(0.2, 0.2, 0.2));
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
-
-		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-		glDrawArrays(GL_TRIANGLES, 0, num_sphere);
-
-
-
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // ºí·»µù
-
-		Imagenum = 2;																				// Ã¶Ã¢
 		glBindVertexArray(VAO[0]);
 		TR = glm::mat4(1.0f);
-		TR = glm::translate(TR, glm::vec3(1.5f, -0.1f, 0.0f));
-		TR = glm::scale(TR, glm::vec3(1.0, 1.0, 0.01));
+		TR = glm::translate(TR, glm::vec3(0.0f, 0.0f, 0.0f));
+		TR = glm::scale(TR, glm::vec3(1.0, 2.0, 2.0));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
-
-		glDisable(GL_BLEND); // ºí·»µù ÇØÁ¦
 
 	}
 
@@ -477,11 +448,11 @@ void keyboard(unsigned char key2, int x, int y) {
 	switch (key2) {
 	case '1':
 		game = 0;
+		Imagenum = 0;
 		break;
 
 	case '2':
 		game = 1;
-		Imagenum = 0;
 		break;
 	case '3':
 		game = 2;

@@ -12,15 +12,15 @@ int loadObj(const char* filename);
 int loadObj_normalize_center_3f(const char* filename);
 int loadObj_normalize_center_4f(const char* filename);
 
-	float sumX=0.0, sumY=0.0, sumZ = 0.0;
-	float aveX, aveY, aveZ;
-	float scaleX, scaleY, scaleZ;
-	float minX= 0.0, minY = 0.0, minZ = 0.0;
-	float maxX = 0.0, maxY = 0.0, maxZ = 0.0;
-	float scaleAll;
+float sumX = 0.0, sumY = 0.0, sumZ = 0.0;
+float aveX, aveY, aveZ;
+float scaleX, scaleY, scaleZ;
+float minX = 0.0, minY = 0.0, minZ = 0.0;
+float maxX = 0.0, maxY = 0.0, maxZ = 0.0;
+float scaleAll;
 
-	float sizeX, sizeY, sizeZ;
-	
+float sizeX, sizeY, sizeZ;
+
 
 int loadObj(const char* filename)
 {
@@ -43,7 +43,7 @@ int loadObj(const char* filename)
 			glm::vec3 vertex;
 			fscanf(objFile, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
 
-			if (vertex.x < minX) minX = vertex.x;	
+			if (vertex.x < minX) minX = vertex.x;
 			if (vertex.y < minY) minY = vertex.y;
 			if (vertex.z < minZ) minZ = vertex.z;
 			if (vertex.x > maxX) maxX = vertex.x;
@@ -73,7 +73,7 @@ int loadObj(const char* filename)
 				printf("File can't be read by our simple parser : ( Try exporting with other options\n");
 				return false;
 			}
-			vertexIndices.push_back(vertexIndex[0]);	
+			vertexIndices.push_back(vertexIndex[0]);
 			vertexIndices.push_back(vertexIndex[1]);
 			vertexIndices.push_back(vertexIndex[2]);
 			uvIndices.push_back(uvIndex[0]);
@@ -129,7 +129,7 @@ int loadObj(const char* filename)
 }
 
 
-int loadObj_normalize_center_3f (const char* filename)
+int loadObj_normalize_center_3f(const char* filename)
 {
 	FILE* objFile;
 
@@ -237,6 +237,8 @@ int loadObj_normalize_center_3f (const char* filename)
 	return outvertex.size();
 }
 
+
+
 int loadObj_normalize_center_4f(const char* filename)
 {
 	FILE* objFile;
@@ -247,13 +249,11 @@ int loadObj_normalize_center_4f(const char* filename)
 		printf("Impossible to open the file !\n");
 		return false;
 	}
-	while (1) {
+	while (!feof(objFile)) {
 
 		char lineHeader[128];
 		// read the first word of the line
 		int res = fscanf(objFile, "%s", lineHeader);
-		if (res == EOF)
-			break; // EOF = End Of File. Quit the loop.
 		if (strcmp(lineHeader, "v") == 0) {
 			glm::vec3 vertex;
 			fscanf(objFile, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
@@ -282,23 +282,37 @@ int loadObj_normalize_center_4f(const char* filename)
 		}
 		else if (strcmp(lineHeader, "f") == 0) {
 			std::string vertex1, vertex2, vertex3;
-			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
-			int matches = fscanf(objFile, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
-			if (matches != 9) {
-				printf("File can't be read by our simple parser : ( Try exporting with other options\n");
-				return false;
-			}
+			float vertexIndex[4], uvIndex[4], normalIndex[4];
+			fscanf(objFile, "%f/%f/%f %f/%f/%f %f/%f/%f %f/%f/%f ", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2], &vertexIndex[3], &uvIndex[3], &normalIndex[3]);
+			
+		
 			vertexIndices.push_back(vertexIndex[0]);
 			vertexIndices.push_back(vertexIndex[1]);
 			vertexIndices.push_back(vertexIndex[2]);
+
+			vertexIndices.push_back(vertexIndex[2]);
+			vertexIndices.push_back(vertexIndex[3]);
+			vertexIndices.push_back(vertexIndex[0]);
+
 			uvIndices.push_back(uvIndex[0]);
 			uvIndices.push_back(uvIndex[1]);
 			uvIndices.push_back(uvIndex[2]);
+
+			uvIndices.push_back(uvIndex[2]);
+			uvIndices.push_back(uvIndex[3]);
+			uvIndices.push_back(uvIndex[0]);
+
 			normalIndices.push_back(normalIndex[0]);
 			normalIndices.push_back(normalIndex[1]);
 			normalIndices.push_back(normalIndex[2]);
+
+			normalIndices.push_back(normalIndex[2]);
+			normalIndices.push_back(normalIndex[3]);
+			normalIndices.push_back(normalIndex[0]);
 		}
 	}
+	
+	
 
 	std::cout << "minX: " << minX << " minY: " << minY << " minZ: " << minZ << std::endl;
 	std::cout << "maxX: " << maxX << " maxY: " << maxY << " maxZ: " << maxZ << std::endl;
