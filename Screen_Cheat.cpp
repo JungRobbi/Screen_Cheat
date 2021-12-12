@@ -28,8 +28,7 @@ using namespace std;
 
 random_device rd;
 default_random_engine dre(rd());
-uniform_real_distribution<float> uid(0.0, 0.1);
-uniform_real_distribution<float> uid2(-1.0, 1.0);
+uniform_real_distribution<float> uid(-3.5, 3.5);
 
 GLuint g_window_w = 800;
 GLuint g_window_h = 800;
@@ -41,10 +40,7 @@ GLuint VBO_uv[100];
 
 int polygon_mode = 2;
 
-int num_vertices = 3;
-int num_triangles = 1;
-int num_sphere = 0;
-int num_cube = 0;
+
 
 void keyboard(unsigned char, int, int);
 void keyboard2(unsigned char key2, int x, int y);
@@ -68,13 +64,20 @@ int loadObj_normalize_center_3f(const char* filename);
 int loadObj_normalize_center_4f(const char* filename);
 float* sphere_object;
 int num_Triangle;
+int num_vertices = 3;
+int num_triangles = 1;
+int num_Sphere = 0;
+int num_cube = 0;
+int num_Gun;
+int num_Tank;
+
 float sunSize;
 int shape = 1;					// 불러올 모양 (1. 육면체, 2. 구)
 
 // 텍스쳐 변수
 
-int img = 4;
-GLuint texture[4];
+int img = 7;
+GLuint texture[7];
 int Imagenum = 0;
 int widthImage, heightImage, numberOfChannel = 0;
 
@@ -231,7 +234,13 @@ void InitBuffer_bind(const int street) {
 		num_Triangle = loadObj_normalize_center_3f("cube.obj");
 	}
 	else if (street == 1) {
-		num_sphere = loadObj_normalize_center_4f("t_34_obj.obj");
+		num_Tank = loadObj_normalize_center_4f("tank.obj");
+	}
+	else if (street == 2) {
+		num_Gun = loadObj_normalize_center_3f("gun.obj");
+	}
+	else if (street == 3) {
+		num_Sphere = loadObj_normalize_center_3f("sphere.obj");
 	}
 
 
@@ -271,10 +280,10 @@ void InitBuffer_bind(const int street) {
 void InitTexture()
 {
 	BITMAPINFO* bmp;
-	string map[4] = { "A.png","B.png","C.png","D.png" };
-	glGenTextures(4, texture); //--- 텍스처 생성
+	string map[7] = { "A.png","B.png","C.png","D.png","E.png","body.png","face.png" };
+	glGenTextures(7, texture); //--- 텍스처 생성
 
-	for (int i = 0; i < 4; ++i) {
+	for (int i = 0; i < 7; ++i) {
 		glBindTexture(GL_TEXTURE_2D, texture[i]); //--- 텍스처 바인딩
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT); //--- 현재 바인딩된 텍스처의 파라미터 설정하기
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
@@ -297,15 +306,59 @@ void Display()
 	// 시작 변수(한번 만 설정 해야함)
 	if (!start) {
 		// obj가 새로 생기면 추가로 bind 하고, 번호에 맞는 VAO[n]을 써야함
-		InitBuffer_bind(0); // 0 : 정육면체, 1 : 탱크
+		InitBuffer_bind(0); // 0 : 정육면체, 1 : 탱크, 2 : 총
 		InitBuffer_bind(1);
+		InitBuffer_bind(2);
+		InitBuffer_bind(3);
 
 		glEnable(GL_DEPTH_TEST);
 
+		for (int i = 0; i < 4; ++i) {
+			boxx[i] = uid(dre);
+			boxy[i] = uid(dre);
+
+		}
+
+		for (int i = 0; i < 12; ++i) {										// (0,1) (2,3) (4,5) (6,7) (8,9) (10,11) = 캐릭터
+			if (i < 6) {
+				walk[i] = false;
+				walk2[i] = false;
+				jump[i] = false;
+				savey[i] = 0.0;
+				dir[i] = 1;
+				mx[i] = uid(dre);
+				my[i] = 0.5;
+				mz[i] = uid(dre);
+				leg[i] = 0;
+				turn[i] = 0;
+				if (i < 5) {
+					clone[i] = 0;
+					makelegX[i] = 0;
+					makelegY[i] = 0;
+					makehead[i] = 0;
+					makearmX[i] = 0;
+					makearmY[i] = 0;
+					makenose[i] = 0;
+
+				}
+				boom[i] = 0;
+				die[i] = false;
+			}
+		}
+
+
+		for (int i = 0; i < 3; ++i) {
+			color2[i] = 1.0;
+		}
+
+		clonespeed[0] = 0.007;
+		clonespeed[1] = 0.009;
+		clonespeed[2] = 0.011;
+		clonespeed[3] = 0.013;
+		clonespeed[4] = 0.015;
 
 		start = true;
 	}
-	ShowCursor(false);
 
 
 	//*************************************************************************
@@ -315,6 +368,13 @@ void Display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	if (game == 0) {
+		ShowCursor(false);
+	}
+	else {
+		ShowCursor(true);
+	}
 
 
 	//*************************************************************************
@@ -361,6 +421,25 @@ void Display()
 
 	if (game == 0) {
 
+		glm::mat4 Vw = glm::mat4(1.0f);
+		glm::mat4 Cp = glm::mat4(1.0f);
+
+		Cp = glm::rotate(Cp, (float)glm::radians(fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+
+		cameraPos = glm::vec4(mx[0], my[0], mz[0], 0.0f);
+		//cameraDirection = glm::vec4(0.0, 0.0, -4.0, 0.0f);
+		cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+
+
+		Vw = glm::lookAt(cameraPos, cameraDirection, cameraUp);
+		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &Vw[0][0]);
+
+		glm::mat4 Pj = glm::mat4(1.0f);
+
+		Pj = glm::perspective(glm::radians(45.0f), (float)WINDOWX / (float)WINDOWY, 0.0005f, 40.0f);
+		glUniformMatrix4fv(projLocation, 1, GL_FALSE, &Pj[0][0]);
+
 		Imagenum = 1;
 
 		glBindVertexArray(VAO[0]);
@@ -378,10 +457,273 @@ void Display()
 		TR = glm::mat4(1.0f);																		// 나무상자
 		TR = glm::translate(TR, glm::vec3(0.0f, -0.1f, -2.0f));
 		TR = glm::scale(TR, glm::vec3(0.7, 0.4, 0.6));
+		modelLocation = glGetUniformLocation(s_program[0], "model");
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-		glDrawArrays(GL_TRIANGLES, 0, num_sphere);
+		glDrawArrays(GL_TRIANGLES, 0, num_Tank);
+
+		Imagenum = 2;
+
+		glBindVertexArray(VAO[2]);
+		TR = glm::mat4(1.0f);																		// 총
+		TR = glm::translate(TR, glm::vec3(1.0f, 0.0f, 1.0f));
+		TR = glm::rotate(TR, (float)glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		TR = glm::scale(TR, glm::vec3(0.005, 0.005, 0.005));
+		modelLocation = glGetUniformLocation(s_program[0], "model");
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+
+		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+		glDrawArrays(GL_TRIANGLES, 0, num_Gun);
+
+		glBindVertexArray(VAO[0]);
+																												// 클론 블럭
+		for (int i = 1; i < 6; ++i) {
+			Imagenum = 0;
+
+			if (clone[i - 1] == 0) {
+				TR = glm::mat4(1.0f);
+				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(mx[i], -0.4, mz[i]));
+				TR = glm::rotate(TR, (float)glm::radians(boxturn), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::scale(TR, glm::vec3(0.1, 0.1, 0.1));
+
+				modelLocation = glGetUniformLocation(s_program[0], "model");
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+			}
+		}
+
+		glBindVertexArray(VAO[0]);
+																												// 장애물
+		for (int i = 0; i < 4; ++i) {
+			Imagenum = 2;
+			TR = glm::mat4(1.0f);
+			TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+			TR = glm::translate(TR, glm::vec3(boxx[i], -0.4, boxy[i]));
+			TR = glm::rotate(TR, (float)glm::radians(boxturn), glm::vec3(0.0f, 1.0f, 0.0f));
+			TR = glm::rotate(TR, 90.0f, glm::vec3(1.0f, 0.0f, 1.0f));
+			TR = glm::scale(TR, glm::vec3(0.1, 0.1, 0.1));
+
+			modelLocation = glGetUniformLocation(s_program[0], "model");
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+			glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+			glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+		}
+
+		glBindVertexArray(VAO[0]);
+																												// 클론 만들어지기
+		for (int i = 1; i < 6; ++i) {
+			if (clone[i - 1] == 1) {
+				Imagenum = 5;
+				glBindVertexArray(VAO[0]);
+				// 왼 다리 그리기
+				TR = glm::mat4(1.0f);
+				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(mx[i], my[i], mz[i]));
+
+				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(-makelegX[i - 1], makelegY[i - 1], 0.0));
+
+				TR = glm::translate(TR, glm::vec3(0.0, 0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(-leg[i]), glm::vec3(1.0f, 0.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(0.0, -0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::scale(TR, glm::vec3(0.01, 0.05, 0.01));
+
+				modelLocation = glGetUniformLocation(s_program[0], "model");
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+				// 오른 다리 그리기
+				TR = glm::mat4(1.0f);
+				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(mx[i], my[i], mz[i]));
+				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(makelegX[i - 1], makelegY[i - 1], 0.0));
+
+				TR = glm::translate(TR, glm::vec3(0.0, 0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(leg[i]), glm::vec3(1.0f, 0.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(0.0, -0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::scale(TR, glm::vec3(0.01, 0.05, 0.01));
+				modelLocation = glGetUniformLocation(s_program[0], "model");
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+				// 왼 팔 그리기
+				TR = glm::mat4(1.0f);
+				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(mx[i], my[i], mz[i]));
+				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(-makearmX[i - 1], makearmY[i - 1], 0.0));
+
+				TR = glm::translate(TR, glm::vec3(0.0, 0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(-leg[i]), glm::vec3(1.0f, 0.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(0.0, -0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::scale(TR, glm::vec3(0.01, 0.05, 0.01));
+				modelLocation = glGetUniformLocation(s_program[0], "model");
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+				// 오른 팔 그리기
+				TR = glm::mat4(1.0f);
+				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(mx[i], my[i], mz[i]));
+				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(makearmX[i - 1], makearmY[i - 1], 0.0));
+
+				TR = glm::translate(TR, glm::vec3(0.0, 0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(leg[i]), glm::vec3(1.0f, 0.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(0.0, -0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::scale(TR, glm::vec3(0.01, 0.05, 0.01));
+
+				modelLocation = glGetUniformLocation(s_program[0], "model");
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+				// 몸 그리기
+				TR = glm::mat4(1.0f);
+				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(mx[i], my[i] + 0.075, mz[i]));
+				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::scale(TR, glm::vec3(0.05, 0.05, 0.03));
+				modelLocation = glGetUniformLocation(s_program[0], "model");
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+				// 머리 그리기
+				Imagenum = 6;
+				TR = glm::mat4(1.0f);
+				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(mx[i], my[i] + makehead[i - 1], mz[i]));
+				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR= glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::scale(TR, glm::vec3(0.04, 0.04, 0.04));
+				modelLocation = glGetUniformLocation(s_program[0], "model");
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+				Imagenum = 5;
+			}
+		}
+																												// 클론 그림
+		glBindVertexArray(VAO[0]);
+
+		for (int i = 1; i < 6; ++i) {																			// 캐릭터
+			Imagenum = 5;
+			if (i == 0 || (i != 0 && clone[i - 1] == 2)) {
+				// 왼 다리 그리기
+				TR = glm::mat4(1.0f);
+				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(mx[i] - boom[i], my[i] - boom[i], mz[i]));
+
+				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(-0.01, 0.03, 0.0));
+
+				TR = glm::translate(TR, glm::vec3(0.0, 0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(-leg[i]), glm::vec3(1.0f, 0.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(0.0, -0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::scale(TR, glm::vec3(0.01, 0.05, 0.01));
+
+				modelLocation = glGetUniformLocation(s_program[0], "model");
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+				// 오른 다리 그리기
+				TR = glm::mat4(1.0f);
+
+				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(mx[i] + boom[i], my[i] - boom[i], mz[i]));
+				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(0.01, 0.03, 0.0));
+
+				TR = glm::translate(TR, glm::vec3(0.0, 0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(leg[i]), glm::vec3(1.0f, 0.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(0.0, -0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::scale(TR, glm::vec3(0.01, 0.05, 0.01));
+				modelLocation = glGetUniformLocation(s_program[0], "model");
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+				// 왼 팔 그리기
+				TR = glm::mat4(1.0f);
+
+				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(mx[i] - boom[i], my[i] + boom[i], mz[i]));
+				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(-0.03, 0.08, 0.0));
+
+				TR = glm::translate(TR, glm::vec3(0.0, 0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(-leg[i]), glm::vec3(1.0f, 0.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(0.0, -0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::scale(TR, glm::vec3(0.01, 0.05, 0.01));
+				modelLocation = glGetUniformLocation(s_program[0], "model");
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+				// 오른 팔 그리기
+				TR = glm::mat4(1.0f);
+
+				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(mx[i] + boom[i], my[i] + boom[i], mz[i]));
+				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(0.03, 0.08, 0.0));
+
+				TR = glm::translate(TR, glm::vec3(0.0, 0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(leg[i]), glm::vec3(1.0f, 0.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(0.0, -0.025, 0.0));
+				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::scale(TR, glm::vec3(0.01, 0.05, 0.01));
+				modelLocation = glGetUniformLocation(s_program[0], "model");
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+				// 몸 그리기
+				TR = glm::mat4(1.0f);
+
+				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(mx[i], my[i] + 0.08, mz[i]));
+				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::scale(TR, glm::vec3(0.03, 0.04, 0.03));
+				modelLocation = glGetUniformLocation(s_program[0], "model");
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+				// 머리 그리기
+				Imagenum = 6;
+				TR = glm::mat4(1.0f);
+
+				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::translate(TR, glm::vec3(mx[i], my[i] + 0.15 + boom[i], mz[i]));
+				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::scale(TR, glm::vec3(0.04, 0.04, 0.04));
+				modelLocation = glGetUniformLocation(s_program[0], "model");
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+				Imagenum = 5;
+			}
+		}
 
 
 		glEnable(GL_BLEND);
@@ -396,6 +738,21 @@ void Display()
 
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+		glBindVertexArray(VAO[3]);
+
+		if (fireball == true) {
+			TR = glm::mat4(1.0f);
+			TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+			TR = glm::translate(TR, glm::vec3(fb[0], fb[1], fb[2]));
+			TR = glm::rotate(TR, (float)glm::radians(boxturn), glm::vec3(0.0f, 1.0f, 0.0f));
+			TR = glm::scale(TR, glm::vec3(0.03, 0.03, 0.03));
+
+			modelLocation = glGetUniformLocation(s_program[0], "model");
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+			glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+			glDrawArrays(GL_TRIANGLES, 0, num_Sphere);
+		}
 
 		glDisable(GL_BLEND); // 블렌딩 해제
 	}
@@ -469,7 +826,16 @@ void Display()
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-		glDrawArrays(GL_TRIANGLES, 0, num_sphere);
+		glDrawArrays(GL_TRIANGLES, 0, num_Tank);
+
+		glBindVertexArray(VAO[2]);
+		TR = glm::mat4(1.0f);																		// 총
+		TR = glm::translate(TR, glm::vec3(0.0f, -0.1f, -2.0f));
+		TR = glm::scale(TR, glm::vec3(0.2, 0.2, 0.2));
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+
+		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+		glDrawArrays(GL_TRIANGLES, 0, num_Gun);
 
 
 
@@ -546,10 +912,11 @@ void Motion(int x, int y)
 
 void Motion2(int x, int y)
 {
-	if (x > WINDOWX - 100 || x < 100 || y > WINDOWY - 100 || y < 100) {
-		SetCursorPos(WINDOWX / 2, WINDOWY / 2);
-	}
 	if (game == 0) {
+		if (x > WINDOWX - 100 || x < 100 || y > WINDOWY - 100 || y < 100) {
+			SetCursorPos(WINDOWX / 2, WINDOWY / 2);
+		}
+	
 		float xoffset = x - intmpx;
 		float yoffset = intmpy - y;
 		intmpx = x;
@@ -602,7 +969,235 @@ void keyboard2(unsigned char key2, int x, int y) {
 }
 
 void TimerFunction(int value) {
-	if (key['v'] == true || key['b'] == true) {
+	if (fireball == true) {
+		if (fb[3] == 1) {
+			fb[0] += cos((float)glm::radians(fpsy + fpsy2)) * 0.05;
+			fb[2] += sin((float)glm::radians(fpsy + fpsy2)) * 0.05;
+		}
+		else if (fb[3] == 2) {
+			fb[0] -= cos((float)glm::radians(fpsy + fpsy2)) * 0.05;
+			fb[2] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.05;
+		}
+		else if (fb[3] == 3) {
+			fb[0] += sin((float)glm::radians(fpsy + fpsy2)) * 0.05;
+			fb[2] -= cos((float)glm::radians(fpsy + fpsy2)) * 0.05;
+		}
+		else if (fb[3] == 4) {
+			fb[0] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.05;
+			fb[2] += cos((float)glm::radians(fpsy + fpsy2)) * 0.05;
+		}
+		else {
+			fb[0] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.05;
+			fb[2] += cos((float)glm::radians(fpsy + fpsy2)) * 0.05;
+		}
+		if ((fb[0] < -5.0) || (fb[0] > 5.0) || (fb[2] < -5.0) || (fb[2] > 5.0)) {
+			fireball = false;
+		}
+	}
+
+	for (int i = 0; i < 6; ++i) {											// 죽으면 터짐
+		if (die[i] == true) {
+			boom[i] += 0.05;
+		}
+		if ((i != 0) && boom[i] >= 1) {
+			mx[i] = uid(dre);
+			my[i] = 0;
+			mz[i] = uid(dre);
+			clone[i - 1] = 0;
+			die[i] = false;
+			boom[i] = 0;
+			makelegX[i - 1] = 0;
+			makelegY[i - 1] = 0;
+			makehead[i - 1] = 0;
+			makearmX[i - 1] = 0;
+			makearmY[i - 1] = 0;
+			makenose[i - 1] = 0;
+		}
+	}
+
+	if (boom[0] >= 1) {
+		boom[0] = 0;
+		for (int i = 0; i < 4; ++i) {
+			boxx[i] = uid(dre);
+			boxy[i] = uid(dre);
+		}
+
+		for (int i = 0; i < 12; ++i) {										// (0,1) (2,3) (4,5) (6,7) (8,9) (10,11) = 캐릭터
+			if (i < 6) {
+				walk[i] = false;
+				die[i] = false;
+				walk2[i] = false;
+				jump[i] = false;
+				savey[i] = -0.5;
+				dir[i] = 1;
+				mx[i] = uid(dre);
+				my[i] = 0;
+				mz[i] = uid(dre);;
+				leg[i] = 0;
+				turn[i] = 0;
+				if (i < 5) {
+					clone[i] = 0;
+					makelegX[i] = 0;
+					makelegY[i] = 0;
+					makehead[i] = 0;
+					makearmX[i] = 0;
+					makearmY[i] = 0;
+					makenose[i] = 0;
+
+				}
+			}
+		}
+		cx = 0;
+		cz = 0;
+		ry = 0;
+
+		turnY2 = 0;
+		boxturn = 0;
+		num = 0;
+		zsize = 1;
+		dieing = 0;
+
+	}
+
+	for (int i = 1; i < 6; ++i) {					// 로봇 따라가기
+		if (clone[i - 1] == 2) {
+
+			walk[i] = true;
+
+			if ((mx[i] <= mx[0])) {
+				mx[i] += clonespeed[i - 1];
+				dir[i] = 1;
+			}
+
+			if ((mz[i] <= mz[0])) {
+				mz[i] += clonespeed[i - 1];
+				dir[i] = 4;
+
+			}
+
+			if ((mx[i] >= mx[0])) {
+				mx[i] -= clonespeed[i - 1];
+				dir[i] = 2;
+
+			}
+
+			if ((mz[i] >= mz[0])) {
+				mz[i] -= clonespeed[i - 1];
+				dir[i] = 3;
+			}
+
+			if (abs(mz[i] - mz[0]) > abs(mx[i] - mx[0])) {
+				if (mz[i] >= mz[0]) {
+					dir[i] = 3;
+				}
+				else {
+					dir[i] = 4;
+				}
+			}
+			else {
+				if (mx[i] >= mx[0]) {
+					dir[i] = 2;
+				}
+				else {
+					dir[i] = 1;
+				}
+			}
+
+		}
+	}
+
+	for (int i = 0; i < 6; ++i) {
+		if (i == 0 || clone[i - 1] == 2) {
+			if (walk[i] == true) {
+				if (walk2[i] == false) {
+					leg[i] += 6;
+					if (leg[i] > 60) {
+						walk2[i] = true;
+					}
+				}
+				else {
+					leg[i] -= 6;
+					if (leg[i] < -60) {
+						walk2[i] = false;
+					}
+				}
+			}
+
+		}
+
+		for (int j = 0; j < 4; ++j) {																			// 플레이어와 장애물
+			if ((mx[0] - 0.025 < boxx[j] + 0.05) && (mz[0] - 0.015 < boxy[j] + 0.05) &&
+				(mx[0] + 0.025 > boxx[j] - 0.05) && (mz[0] + 0.015 > boxy[j] - 0.05)) {
+				die[0] = true;
+			}
+		}
+
+		for (int j = 1; j < 6; ++j) {																			// 플레이어와 좀비
+			if ((mx[0] - 0.025 < mx[j] + 0.025) && (mz[0] - 0.015 < mz[j] + 0.015) &&
+				(mx[0] + 0.025 > mx[j] - 0.025) && (mz[0] + 0.015 > mz[j] - 0.015)) {
+				if (clone[j - 1] == 2) {
+					die[0] = true;
+				}
+
+			}
+		}
+
+		if (i != 0 && clone[i - 1] == 0) {																		// 플레이어와 비활성 좀비
+			if ((mx[0] - 0.025 < mx[i] + 0.05) && (mz[0] - 0.015 < mz[i] + 0.05) &&
+				(mx[0] + 0.025 > mx[i] - 0.05) && (mz[0] + 0.015 > mz[i] - 0.05)) {
+				clone[i - 1] = 1;
+			}
+
+		}
+
+		if (i != 0 && clone[i - 1] == 2) {																		// 좀비와 파이어볼
+			if ((mx[i] - 0.025 < fb[0] + 0.05) && (mz[i] - 0.015 < fb[2] + 0.05) &&
+				(mx[i] + 0.025 > fb[0] - 0.05) && (mz[i] + 0.015 > fb[2] - 0.05) && fireball == true) {
+				die[i] = true;
+				fireball = false;
+			}
+
+		}
+
+		if (jump[i] == true) {
+			my[i] += 0.01;
+
+			if (my[i] > 0.2) {
+				jump[i] = false;
+			}
+		}
+
+		else {
+			my[i] -= 0.015;
+			if (my[i] < savey[i]) {
+				my[i] = savey[i];
+			}
+		}
+
+		walk[i] = false;
+	}
+
+	for (int i = 0; i < 5; ++i) {					// 로봇 만들어지는 과정
+		if (clone[i] == 1) {
+			makelegX[i] += 0.0001;
+			makelegY[i] += 0.0003;
+
+			makearmX[i] += 0.0001;
+			makearmY[i] += 0.0008;
+
+			makehead[i] += 0.0012;
+
+			if (makelegX[i] > 0.01) {
+				clone[i] = 2;
+			}
+		}
+	}
+
+
+
+
+
+	if (key['w'] == true || key['s'] == true || key['a'] == true || key['d'] == true) {
 		if (walkmove2 == false) {
 			walkmove += 0.002;
 			if (walkmove > 0.03) {
@@ -614,6 +1209,16 @@ void TimerFunction(int value) {
 			if (walkmove < 0) {
 				walkmove2 = false;
 			}
+		}
+	}
+
+	if (key['l'] == true) {						// 공격
+		if (fireball == false) {
+			fireball = true;
+			fb[0] = mx[0];
+			fb[1] = my[0];
+			fb[2] = mz[0];
+			fb[3] = 1;
 		}
 	}
 
