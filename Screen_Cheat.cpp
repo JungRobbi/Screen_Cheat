@@ -82,6 +82,9 @@ int widthImage, heightImage, numberOfChannel = 0;
 
 int game = 0;					// 게임 state
 
+int intmpx = 0;
+int intmpy = 0;
+
 float fpsy = 0;					// 1p 좌 우 시야
 float fpsup = 0;				// 1p 위 아래 시야
 float fpsy2 = 0;					// 1p 좌 우 시야
@@ -134,6 +137,10 @@ float fb[4];
 
 float dieing = 0;				// 죽는 애니메이션
 bool die[6];					// 캐릭터 죽음 체크
+
+glm::vec3 cameraPos = glm::vec4(mx[0], my[0], mz[0], 0.0f);
+glm::vec3 cameraDirection = glm::vec4(0.0, fpsup + walkmove, -2.0, 0.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 // 응가 변수
 
@@ -217,12 +224,6 @@ void InitBuffer()
 	glGenBuffers(10, VBO_normal);
 	glGenBuffers(10, VBO_uv);
 
-
-	// obj가 새로 생기면 추가로 bind 하고, 번호에 맞는 VAO[n]을 써야함
-	InitBuffer_bind(0); // 0 : 정육면체, 1 : 구 
-	InitBuffer_bind(1);
-
-	glEnable(GL_DEPTH_TEST);
 }
 
 void InitBuffer_bind(const int street) {
@@ -292,6 +293,20 @@ void InitTexture()
 
 void Display()
 {
+	//*************************************************************************
+	// 시작 변수(한번 만 설정 해야함)
+	if (!start) {
+		// obj가 새로 생기면 추가로 bind 하고, 번호에 맞는 VAO[n]을 써야함
+		InitBuffer_bind(0); // 0 : 정육면체, 1 : 탱크
+		InitBuffer_bind(1);
+
+		glEnable(GL_DEPTH_TEST);
+
+
+		start = true;
+	}
+	ShowCursor(false);
+
 
 	//*************************************************************************
 	// 출력 설정
@@ -314,11 +329,13 @@ void Display()
 
 	Cp = glm::rotate(Cp, (float)glm::radians(fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	glm::vec3 cameraPos = glm::vec4(mx[0], my[0], mz[0], 0.0f);
-	glm::vec3 cameraDirection = glm::vec4(0.0, fpsup + walkmove, -2.0, 0.0f) * Cp;
-	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	cameraPos = glm::vec4(mx[0], my[0], mz[0], 0.0f);
+	//cameraDirection = glm::vec4(0.0, fpsup + walkmove, -2.0, 0.0f) * Cp;
+	cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-	Vw = glm::lookAt(cameraPos, cameraPos + cameraDirection, cameraUp);
+
+
+	Vw = glm::lookAt(cameraPos, cameraDirection, cameraUp);
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &Vw[0][0]);
 
 	glm::mat4 Pj = glm::mat4(1.0f);
@@ -339,8 +356,8 @@ void Display()
 	// 그리기 부분
 
 	glUseProgram(s_program[0]);
-		
-		
+
+
 
 	if (game == 0) {
 
@@ -523,20 +540,45 @@ void Mouse(int button, int state, int x, int y)
 	}
 }
 void Motion(int x, int y)
-{	
-	
+{
+
 }
 
 void Motion2(int x, int y)
 {
+	if (x > WINDOWX - 100 || x < 100 || y > WINDOWY - 100 || y < 100) {
+		SetCursorPos(WINDOWX / 2, WINDOWY / 2);
+	}
 	if (game == 0) {
-		fpsy = ((float)x - ((float)WINDOWX / (float)2)) / ((float)WINDOWX / (float)2) * 180;
-		fpsup = -((float)y - ((float)WINDOWY / (float)2)) / ((float)WINDOWY / (float)2) * 1.5;
+		float xoffset = x - intmpx;
+		float yoffset = intmpy - y;
+		intmpx = x;
+		intmpy = y;
+
+		if (abs(xoffset) < WINDOWX / 4 && abs(yoffset) < WINDOWX / 4) {
+
+			xoffset *= 0.2;
+			yoffset *= 0.2;
+
+			fpsy += xoffset;
+			fpsup += yoffset;
+
+
+			if (fpsup > 89.0f)
+				fpsup = 89.0f;
+			if (fpsup < -89.0f)
+				fpsup = -89.0f;
+
+		}
+
 	}
 }
 
 void keyboard(unsigned char key2, int x, int y) {
 	key[key2] = true;
+	if (key2 == 27) {
+		exit(0);
+	}
 	switch (key2) {
 	case '1':
 		game = 0;
@@ -575,25 +617,25 @@ void TimerFunction(int value) {
 		}
 	}
 
-	if (key['w'] == true) {						// 위로 이동
+	if (key['a'] == true) {						// 위로 이동
 		walk[0] = true;
 		mx[0] += sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
 		mz[0] -= cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
 		dir[0] = 3;
 	}
-	if (key['s'] == true) {						// 아래로 이동
+	if (key['d'] == true) {						// 아래로 이동
 		walk[0] = true;
 		mx[0] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
 		mz[0] += cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
 		dir[0] = 4;
 	}
-	if (key['a'] == true) {						// 왼쪽으로 이동
+	if (key['s'] == true) {						// 왼쪽으로 이동
 		walk[0] = true;
 		mx[0] -= cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
 		mz[0] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
 		dir[0] = 2;
 	}
-	if (key['d'] == true) {						// 오른쪽으로 이동
+	if (key['w'] == true) {						// 오른쪽으로 이동
 		walk[0] = true;
 		mx[0] += cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
 		mz[0] += sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
@@ -603,6 +645,10 @@ void TimerFunction(int value) {
 	if (key['f'] == true) {
 		jump[0] = true;
 	}
+
+	cameraDirection.x = cos(glm::radians(fpsup)) * cos(glm::radians(fpsy)) + cameraPos.x;
+	cameraDirection.y = sin(glm::radians(fpsup)) + cameraPos.y + walkmove;
+	cameraDirection.z = cos(glm::radians(fpsup)) * sin(glm::radians(fpsy)) + cameraPos.z;
 
 	glutPostRedisplay();
 
