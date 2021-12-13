@@ -83,7 +83,7 @@ int widthImage, heightImage, numberOfChannel = 0;
 
 // 게임 변수
 
-int game = 0;					// 게임 state
+int game = 2;					// 게임 state
 
 int intmpx = 0;
 int intmpy = 0;
@@ -94,6 +94,9 @@ float fpsy2 = 0;					// 1p 좌 우 시야
 float fpsup2 = 0;				// 1p 위 아래 시야
 float walkmove = 0;				// 1p 걷는 흔들림
 bool walkmove2 = false;
+float shootmove = 0;			// 1p 총 흔들림
+bool shootmove2 = false;
+bool shoot = false;
 
 float cx = 0;					// 카메라 x
 float cz = 0;					// 카메라 z
@@ -146,6 +149,78 @@ glm::vec3 cameraDirection = glm::vec4(0.0, fpsup + walkmove, -2.0, 0.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 glm::vec3 gunPos = glm::vec3(0.0f, 1.0f, 0.0f);
+
+// 맵 만들기 변수
+
+int itemnum = 0;
+int itemkind = 0;
+
+class Item {
+private:
+
+public:
+	int state = 0;											// 0 = 마우스 위		1 = 설치됨
+	int kind = 0;
+	float left = 0;
+	float right = 0;
+	float top = 0;
+	float bottom = 0;
+	float front = 0;
+	float back = 0;
+	float x = 0;
+	float z = 0;
+	float plus = 0;
+
+	glm::vec3 s;
+	glm::vec3 r;
+	glm::vec3 t;
+
+	void Update() {
+		if (this->state == 0) {
+			this->kind = itemkind;
+		}
+
+		if (this->kind == 0) {								// 나무 상자
+			this->s = glm::vec3(0.1f + this -> plus, 0.1f + this->plus, 0.1f + this->plus);
+		}
+		else if (this->kind == 1) {							// 세로 철창
+			this->s = glm::vec3(1.0f + this->plus, 1.0f + this->plus, 0.001f);
+		}
+		else if (this->kind == 2) {							// 가로 철창
+			this->s = glm::vec3(0.001f, 1.0f + this->plus, 1.0f + this->plus);
+		}
+		else if (this->kind == 3) {							// 탱크
+			this->s = glm::vec3(0.7f + this->plus, 0.4f + this->plus, 0.6f + this->plus);
+		}
+
+		this->t = glm::vec3(this -> x, 0.0f, this-> z);
+	}
+
+	void Draw() {
+		if (this->kind == 0) {								// 나무상자
+			glBindVertexArray(VAO[0]);
+			glBindTexture(GL_TEXTURE_2D, texture[1]);
+			glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+		}
+		else if (this->kind == 1) {							// 세로 철창
+			glBindVertexArray(VAO[0]);
+			glBindTexture(GL_TEXTURE_2D, texture[2]);
+			glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+		}
+		else if (this->kind == 2) {							// 가로 철창
+			glBindVertexArray(VAO[0]);
+			glBindTexture(GL_TEXTURE_2D, texture[2]);
+			glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+		}
+		else if (this->kind == 3) {							// 탱크
+			glBindVertexArray(VAO[1]);
+			glBindTexture(GL_TEXTURE_2D, texture[4]);
+			glDrawArrays(GL_TRIANGLES, 0, num_Tank);
+		}
+	}
+};
+
+Item item[100];
 
 
 
@@ -207,7 +282,7 @@ int main(int argc, char** argv)
 	glutReshapeFunc(Reshape);
 	glutMouseFunc(Mouse);
 	//glutMotionFunc(Motion);
-	
+
 	glutPassiveMotionFunc(Motion2);
 	glutKeyboardFunc(keyboard);
 	glutKeyboardUpFunc(keyboard2);
@@ -481,7 +556,7 @@ void Display()
 		glDrawArrays(GL_TRIANGLES, 0, num_Gun);
 
 		glBindVertexArray(VAO[0]);
-																												// 클론 블럭
+		// 클론 블럭
 		for (int i = 1; i < 6; ++i) {
 			Imagenum = 0;
 
@@ -499,7 +574,7 @@ void Display()
 		}
 
 		glBindVertexArray(VAO[0]);
-																												// 장애물
+		// 장애물
 		for (int i = 0; i < 4; ++i) {
 			Imagenum = 2;
 			TR = glm::mat4(1.0f);
@@ -516,7 +591,7 @@ void Display()
 		}
 
 		glBindVertexArray(VAO[0]);
-																												// 클론 만들어지기
+		// 클론 만들어지기
 		for (int i = 1; i < 6; ++i) {
 			if (clone[i - 1] == 1) {
 				Imagenum = 5;
@@ -610,7 +685,7 @@ void Display()
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::translate(TR, glm::vec3(mx[i], my[i] + makehead[i - 1], mz[i]));
 				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
-				TR= glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
+				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::scale(TR, glm::vec3(0.04, 0.04, 0.04));
 				modelLocation = glGetUniformLocation(s_program[0], "model");
 				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
@@ -619,7 +694,7 @@ void Display()
 				Imagenum = 5;
 			}
 		}
-																												// 클론 그림
+		// 클론 그림
 		glBindVertexArray(VAO[0]);
 
 		for (int i = 1; i < 6; ++i) {																			// 캐릭터
@@ -746,7 +821,6 @@ void Display()
 
 		if (fireball == true) {
 			TR = glm::mat4(1.0f);
-			TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
 			TR = glm::translate(TR, glm::vec3(fb[0], fb[1], fb[2]));
 			TR = glm::rotate(TR, (float)glm::radians(boxturn), glm::vec3(0.0f, 1.0f, 0.0f));
 			TR = glm::scale(TR, glm::vec3(0.03, 0.03, 0.03));
@@ -767,16 +841,16 @@ void Display()
 		gunPos.y = sin(glm::radians(fpsup)) * 0.2 + cameraPos.y + walkmove * 0.4 - 0.04;
 		gunPos.z = cos(glm::radians(fpsup)) * sin(glm::radians(fpsy)) * 0.2 + cameraPos.z;
 
-		TR = glm::mat4(1.0f);								
+		TR = glm::mat4(1.0f);
 
 		TR = glm::translate(TR, glm::vec3(gunPos.x, gunPos.y, gunPos.z));
-	
-		
+
 		TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0, 1.0, 0.0));
 		TR = glm::rotate(TR, (float)glm::radians(fpsup), glm::vec3(0.0, 0.0, 1.0));
+		TR = glm::rotate(TR, (float)glm::radians(shootmove), glm::vec3(1.0, 0.0, 0.0));
 		TR = glm::scale(TR, glm::vec3(0.01, 0.05, 0.05));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
-		
+
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
@@ -787,7 +861,7 @@ void Display()
 
 
 
-	
+
 
 	}
 
@@ -842,7 +916,21 @@ void Display()
 
 
 		// 그리기 코드
+
+
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // 블렌딩
+
 		Imagenum = 1;
+		for (int i = 0; i < itemnum+1; ++i) {
+			item[i].Update();
+			TR = glm::mat4(1.0f);																		// 오브젝트 그리기
+			TR = glm::translate(TR, glm::vec3(item[i].t));
+			TR = glm::scale(TR, glm::vec3(item[i].s));
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+			item[i].Draw();
+		}
 
 		glBindVertexArray(VAO[0]);
 		TR = glm::mat4(1.0f);																		// 맵
@@ -852,30 +940,6 @@ void Display()
 
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
-
-		glBindVertexArray(VAO[1]);
-		TR = glm::mat4(1.0f);																		// 탱크
-		TR = glm::translate(TR, glm::vec3(0.0f, -0.1f, -2.0f));
-		TR = glm::scale(TR, glm::vec3(0.2, 0.2, 0.2));
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
-
-		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-		glDrawArrays(GL_TRIANGLES, 0, num_Tank);
-
-		glBindVertexArray(VAO[2]);
-		TR = glm::mat4(1.0f);																		// 총
-		TR = glm::translate(TR, glm::vec3(0.0f, -0.1f, -2.0f));
-		TR = glm::scale(TR, glm::vec3(0.2, 0.2, 0.2));
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
-
-		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-		glDrawArrays(GL_TRIANGLES, 0, num_Gun);
-
-
-
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // 블렌딩
 
 		Imagenum = 2;																				// 철창
 		glBindVertexArray(VAO[0]);
@@ -918,7 +982,7 @@ void Mouse(int button, int state, int x, int y)
 			else if (msx < 0.8 && msx > 0.2 && msy > -0.8 && msy < -0.2) {
 				game = 0;
 			}
-	
+
 
 		}
 
@@ -929,12 +993,32 @@ void Mouse(int button, int state, int x, int y)
 			mousex = ((float)x - ((float)WINDOWX / (float)2)) / ((float)WINDOWX / (float)2) * 90;
 			mousey = -((float)y - ((float)WINDOWY / (float)2)) / ((float)WINDOWY / (float)2) * 1.5;
 			Click = 1;
+			fireball = true;
+			fb[0] = mx[0];
+			fb[1] = my[0];
+			fb[2] = mz[0];
+			fb[3] = 1;
+			shoot = true;
 		}
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
 			fpsy += fpsy2;
 			fpsup += fpsup2;
 			fpsy2 = 0;
 			fpsup2 = 0;
+			Click = 0;
+		}
+	}
+	else if (game == 2) {
+		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+			item[itemnum].x = ((float)x - ((float)WINDOWX / (float)2)) / ((float)WINDOWX / (float)2) * 5;
+			item[itemnum].z = ((float)y - ((float)WINDOWY / (float)2)) / ((float)WINDOWY / (float)2) * 5;
+			
+			item[itemnum].state = 1;
+			itemnum++;
+
+			Click = 1;
+		}
+		if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
 			Click = 0;
 		}
 	}
@@ -950,7 +1034,7 @@ void Motion2(int x, int y)
 		if (x > WINDOWX - 100 || x < 100 || y > WINDOWY - 100 || y < 100) {
 			SetCursorPos(WINDOWX / 2, WINDOWY / 2);
 		}
-	
+
 		float xoffset = x - intmpx;
 		float yoffset = intmpy - y;
 		intmpx = x;
@@ -973,27 +1057,59 @@ void Motion2(int x, int y)
 		}
 
 	}
+	else if (game == 2) {
+		item[itemnum].x = ((float)x - ((float)WINDOWX / (float)2)) / ((float)WINDOWX / (float)2) * 5;
+		item[itemnum].z = ((float)y - ((float)WINDOWY / (float)2)) / ((float)WINDOWY / (float)2) * 5;
+	}
 }
 
 void keyboard(unsigned char key2, int x, int y) {
 	key[key2] = true;
-	if (key2 == 27) {
-		exit(0);
+
+	if (game == 2) {
+		if (key2 == 27) {
+			exit(0);
+		}
+		switch (key2) {
+		case '1':
+			itemkind = 0;
+			break;
+
+		case '2':
+			itemkind = 1;
+			break;
+		case '3':
+			itemkind = 2;
+			break;
+		case '4':
+			itemkind = 3;
+			break;
+		case '=':
+			item[itemnum].plus += 0.01;
+			break;
+		case '-':
+			item[itemnum].plus -= 0.01;
+			break;
+		}
+
 	}
-	switch (key2) {
-	case '1':
-		game = 0;
-		break;
+	else {
+		if (key2 == 27) {
+			exit(0);
+		}
+		switch (key2) {
+		case ',':
+			game = 0;
+			break;
 
-	case '2':
-		game = 1;
-		Imagenum = 0;
-		break;
-	case '3':
-		game = 2;
-		break;
-
-
+		case '.':
+			game = 1;
+			Imagenum = 0;
+			break;
+		case '/':
+			game = 2;
+			break;
+		}
 	}
 	glutPostRedisplay();
 }
@@ -1228,7 +1344,21 @@ void TimerFunction(int value) {
 	}
 
 
-
+	if (shoot == true) {
+		if (shootmove2 == false && shootmove <= 5) {
+			shootmove += 1;
+			if (shootmove > 5) {
+				shootmove2 = true;
+			}
+		}
+		else {
+			shootmove -= 2;
+			if (shootmove < 0) {
+				shootmove2 = false;
+				shoot = false;
+			}
+		}
+	}
 
 
 	if (key['w'] == true || key['s'] == true || key['a'] == true || key['d'] == true) {
@@ -1245,6 +1375,7 @@ void TimerFunction(int value) {
 			}
 		}
 	}
+
 	else {
 		walkmove = 0;
 	}
@@ -1278,23 +1409,12 @@ void TimerFunction(int value) {
 	if (key['f'] == true) {
 		jump[0] = true;
 	}
-	if (key['l'] == true) {
-		if (game == 0) {
-			if (fireball == false) {
-				fireball = true;
-				fb[0] = mx[0];
-				fb[1] = my[0];
-				fb[2] = mz[0];
-				fb[3] = 1;
-			}
-		}
-	}
 
 	cameraDirection.x = cos(glm::radians(fpsup)) * cos(glm::radians(fpsy)) + cameraPos.x;
 	cameraDirection.y = sin(glm::radians(fpsup)) + cameraPos.y + walkmove;
 	cameraDirection.z = cos(glm::radians(fpsup)) * sin(glm::radians(fpsy)) + cameraPos.z;
 
-	
+
 
 	glutPostRedisplay();
 
