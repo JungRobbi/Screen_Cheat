@@ -77,7 +77,7 @@ int shape = 1;					// 불러올 모양 (1. 육면체, 2. 구)
 // 텍스쳐 변수
 
 int img = 7;
-GLuint texture[7];
+GLuint texture[8];
 int Imagenum = 0;
 int widthImage, heightImage, numberOfChannel = 0;
 
@@ -145,6 +145,10 @@ glm::vec3 cameraPos = glm::vec4(mx[0], my[0], mz[0], 0.0f);
 glm::vec3 cameraDirection = glm::vec4(0.0, fpsup + walkmove, -2.0, 0.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+glm::vec3 gunPos = glm::vec3(0.0f, 1.0f, 0.0f);
+
+
+
 // 응가 변수
 
 glm::mat4 TR = glm::mat4(1.0f);
@@ -202,7 +206,8 @@ int main(int argc, char** argv)
 	glutDisplayFunc(Display);
 	glutReshapeFunc(Reshape);
 	glutMouseFunc(Mouse);
-	glutMotionFunc(Motion);
+	//glutMotionFunc(Motion);
+	
 	glutPassiveMotionFunc(Motion2);
 	glutKeyboardFunc(keyboard);
 	glutKeyboardUpFunc(keyboard2);
@@ -280,10 +285,10 @@ void InitBuffer_bind(const int street) {
 void InitTexture()
 {
 	BITMAPINFO* bmp;
-	string map[7] = { "A.png","B.png","C.png","D.png","E.png","body.png","face.png" };
-	glGenTextures(7, texture); //--- 텍스처 생성
+	string map[8] = { "A.png","B.png","C.png","D.png","E.png","body.png","face.png","gun_tex.png" };
+	glGenTextures(8, texture); //--- 텍스처 생성
 
-	for (int i = 0; i < 7; ++i) {
+	for (int i = 0; i < 8; ++i) {
 		glBindTexture(GL_TEXTURE_2D, texture[i]); //--- 텍스처 바인딩
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT); //--- 현재 바인딩된 텍스처의 파라미터 설정하기
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
@@ -420,6 +425,7 @@ void Display()
 
 
 	if (game == 0) {
+		glViewport(0, 0, WINDOWX, WINDOWY);
 
 		glm::mat4 Vw = glm::mat4(1.0f);
 		glm::mat4 Cp = glm::mat4(1.0f);
@@ -457,7 +463,6 @@ void Display()
 		TR = glm::mat4(1.0f);																		// 나무상자
 		TR = glm::translate(TR, glm::vec3(0.0f, -0.1f, -2.0f));
 		TR = glm::scale(TR, glm::vec3(0.7, 0.4, 0.6));
-		modelLocation = glGetUniformLocation(s_program[0], "model");
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
@@ -470,7 +475,6 @@ void Display()
 		TR = glm::translate(TR, glm::vec3(1.0f, 0.0f, 1.0f));
 		TR = glm::rotate(TR, (float)glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		TR = glm::scale(TR, glm::vec3(0.005, 0.005, 0.005));
-		modelLocation = glGetUniformLocation(s_program[0], "model");
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
@@ -488,7 +492,6 @@ void Display()
 				TR = glm::rotate(TR, (float)glm::radians(boxturn), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::scale(TR, glm::vec3(0.1, 0.1, 0.1));
 
-				modelLocation = glGetUniformLocation(s_program[0], "model");
 				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
@@ -748,13 +751,44 @@ void Display()
 			TR = glm::rotate(TR, (float)glm::radians(boxturn), glm::vec3(0.0f, 1.0f, 0.0f));
 			TR = glm::scale(TR, glm::vec3(0.03, 0.03, 0.03));
 
-			modelLocation = glGetUniformLocation(s_program[0], "model");
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 			glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 			glDrawArrays(GL_TRIANGLES, 0, num_Sphere);
 		}
 
+
+		glEnable(GL_CULL_FACE);
+
+		Imagenum = 7;
+
+		glBindVertexArray(VAO[0]);
+
+		gunPos.x = cos(glm::radians(fpsup)) * cos(glm::radians(fpsy)) * 0.2 + cameraPos.x;
+		gunPos.y = sin(glm::radians(fpsup)) * 0.2 + cameraPos.y + walkmove * 0.4 - 0.04;
+		gunPos.z = cos(glm::radians(fpsup)) * sin(glm::radians(fpsy)) * 0.2 + cameraPos.z;
+
+		TR = glm::mat4(1.0f);								
+
+		TR = glm::translate(TR, glm::vec3(gunPos.x, gunPos.y, gunPos.z));
+	
+		
+		TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0, 1.0, 0.0));
+		TR = glm::rotate(TR, (float)glm::radians(fpsup), glm::vec3(0.0, 0.0, 1.0));
+		TR = glm::scale(TR, glm::vec3(0.01, 0.05, 0.05));
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+		
+		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+
+
+		glDisable(GL_CULL_FACE);
 		glDisable(GL_BLEND); // 블렌딩 해제
+
+
+
+
+	
+
 	}
 
 	else if (game == 1) {																			// 메인 화면
@@ -820,7 +854,7 @@ void Display()
 		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
 		glBindVertexArray(VAO[1]);
-		TR = glm::mat4(1.0f);																		// 나무상자
+		TR = glm::mat4(1.0f);																		// 탱크
 		TR = glm::translate(TR, glm::vec3(0.0f, -0.1f, -2.0f));
 		TR = glm::scale(TR, glm::vec3(0.2, 0.2, 0.2));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
@@ -884,7 +918,7 @@ void Mouse(int button, int state, int x, int y)
 			else if (msx < 0.8 && msx > 0.2 && msy > -0.8 && msy < -0.2) {
 				game = 0;
 			}
-			printf("%f %f", msx, msy);
+	
 
 		}
 
@@ -1199,28 +1233,22 @@ void TimerFunction(int value) {
 
 	if (key['w'] == true || key['s'] == true || key['a'] == true || key['d'] == true) {
 		if (walkmove2 == false) {
-			walkmove += 0.002;
-			if (walkmove > 0.03) {
+			walkmove += 0.001;
+			if (walkmove > 0.02) {
 				walkmove2 = true;
 			}
 		}
 		else {
-			walkmove -= 0.003;
+			walkmove -= 0.002;
 			if (walkmove < 0) {
 				walkmove2 = false;
 			}
 		}
 	}
-
-	if (key['l'] == true) {						// 공격
-		if (fireball == false) {
-			fireball = true;
-			fb[0] = mx[0];
-			fb[1] = my[0];
-			fb[2] = mz[0];
-			fb[3] = 1;
-		}
+	else {
+		walkmove = 0;
 	}
+
 
 	if (key['a'] == true) {						// 위로 이동
 		walk[0] = true;
@@ -1250,10 +1278,23 @@ void TimerFunction(int value) {
 	if (key['f'] == true) {
 		jump[0] = true;
 	}
+	if (key['l'] == true) {
+		if (game == 0) {
+			if (fireball == false) {
+				fireball = true;
+				fb[0] = mx[0];
+				fb[1] = my[0];
+				fb[2] = mz[0];
+				fb[3] = 1;
+			}
+		}
+	}
 
 	cameraDirection.x = cos(glm::radians(fpsup)) * cos(glm::radians(fpsy)) + cameraPos.x;
 	cameraDirection.y = sin(glm::radians(fpsup)) + cameraPos.y + walkmove;
 	cameraDirection.z = cos(glm::radians(fpsup)) * sin(glm::radians(fpsy)) + cameraPos.z;
+
+	
 
 	glutPostRedisplay();
 
