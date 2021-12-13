@@ -70,6 +70,7 @@ int num_Sphere = 0;
 int num_cube = 0;
 int num_Gun;
 int num_Tank;
+int num_Tong;
 
 float sunSize;
 int shape = 1;					// 불러올 모양 (1. 육면체, 2. 구)
@@ -77,7 +78,7 @@ int shape = 1;					// 불러올 모양 (1. 육면체, 2. 구)
 // 텍스쳐 변수
 
 int img = 7;
-GLuint texture[8];
+GLuint texture[20];
 int Imagenum = 0;
 int widthImage, heightImage, numberOfChannel = 0;
 
@@ -154,6 +155,7 @@ glm::vec3 gunPos = glm::vec3(0.0f, 1.0f, 0.0f);
 
 int itemnum = 0;
 int itemkind = 0;
+bool cl = false;
 
 class Item {
 private:
@@ -214,13 +216,13 @@ public:
 		}
 		else if (this->kind == 3) {							// 탱크
 			glBindVertexArray(VAO[1]);
-			glBindTexture(GL_TEXTURE_2D, texture[4]);
+			glBindTexture(GL_TEXTURE_2D, texture[3]);
 			glDrawArrays(GL_TRIANGLES, 0, num_Tank);
 		}
 	}
 };
 
-Item item[100];
+Item item[1000];
 
 
 
@@ -317,10 +319,13 @@ void InitBuffer_bind(const int street) {
 		num_Tank = loadObj_normalize_center_4f("tank.obj");
 	}
 	else if (street == 2) {
-		num_Gun = loadObj_normalize_center_3f("gun.obj");
+		num_Tong = loadObj_normalize_center_4f("sohwajeon.obj");
 	}
 	else if (street == 3) {
 		num_Sphere = loadObj_normalize_center_3f("sphere.obj");
+	}
+	else if (street == 4) {
+		
 	}
 
 
@@ -360,10 +365,10 @@ void InitBuffer_bind(const int street) {
 void InitTexture()
 {
 	BITMAPINFO* bmp;
-	string map[8] = { "A.png","B.png","C.png","D.png","E.png","body.png","face.png","gun_tex.png" };
-	glGenTextures(8, texture); //--- 텍스처 생성
+	string map[20] = { "A.png","B.png","C.png","D.png","E.png","body.png","face.png","gun_tex.png" };
+	glGenTextures(20, texture); //--- 텍스처 생성
 
-	for (int i = 0; i < 8; ++i) {
+	for (int i = 0; i < 20; ++i) {
 		glBindTexture(GL_TEXTURE_2D, texture[i]); //--- 텍스처 바인딩
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT); //--- 현재 바인딩된 텍스처의 파라미터 설정하기
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
@@ -449,7 +454,7 @@ void Display()
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	if (game == 0) {
+	if (game == 0 || game == 2) {
 		ShowCursor(false);
 	}
 	else {
@@ -521,39 +526,17 @@ void Display()
 		Pj = glm::perspective(glm::radians(45.0f), (float)WINDOWX / (float)WINDOWY, 0.0005f, 40.0f);
 		glUniformMatrix4fv(projLocation, 1, GL_FALSE, &Pj[0][0]);
 
-		Imagenum = 1;
+		Imagenum = 4;
 
 		glBindVertexArray(VAO[0]);
 		TR = glm::mat4(1.0f);																		// 맵
-		TR = glm::translate(TR, glm::vec3(0.0f, 4.5f, 0.0f));
-		TR = glm::scale(TR, glm::vec3(7.0, 10.0, 7.0));
+		TR = glm::translate(TR, glm::vec3(0.0f, 1.7f, 0.0f));
+		TR = glm::scale(TR, glm::vec3(7.0, 3.0, 7.0));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
-		Imagenum = 3;
-
-		glBindVertexArray(VAO[1]);
-		TR = glm::mat4(1.0f);																		// 나무상자
-		TR = glm::translate(TR, glm::vec3(0.0f, -0.1f, -2.0f));
-		TR = glm::scale(TR, glm::vec3(0.7, 0.4, 0.6));
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
-
-		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-		glDrawArrays(GL_TRIANGLES, 0, num_Tank);
-
-		Imagenum = 2;
-
-		glBindVertexArray(VAO[2]);
-		TR = glm::mat4(1.0f);																		// 총
-		TR = glm::translate(TR, glm::vec3(1.0f, 0.0f, 1.0f));
-		TR = glm::rotate(TR, (float)glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		TR = glm::scale(TR, glm::vec3(0.005, 0.005, 0.005));
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
-
-		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-		glDrawArrays(GL_TRIANGLES, 0, num_Gun);
 
 		glBindVertexArray(VAO[0]);
 		// 클론 블럭
@@ -680,6 +663,7 @@ void Display()
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
 				// 머리 그리기
+				glBindVertexArray(VAO[3]);
 				Imagenum = 6;
 				TR = glm::mat4(1.0f);
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -690,7 +674,7 @@ void Display()
 				modelLocation = glGetUniformLocation(s_program[0], "model");
 				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+				glDrawArrays(GL_TRIANGLES, 0, num_Sphere);
 				Imagenum = 5;
 			}
 		}
@@ -789,16 +773,16 @@ void Display()
 				// 머리 그리기
 				Imagenum = 6;
 				TR = glm::mat4(1.0f);
-
+				glBindVertexArray(VAO[3]);
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
-				TR = glm::translate(TR, glm::vec3(mx[i], my[i] + 0.15 + boom[i], mz[i]));
+				TR = glm::translate(TR, glm::vec3(mx[i], my[i] + 0.15 + boom[i], mz[i] - 0.015));
 				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::scale(TR, glm::vec3(0.04, 0.04, 0.04));
 				modelLocation = glGetUniformLocation(s_program[0], "model");
 				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+				glDrawArrays(GL_TRIANGLES, 0, num_Sphere);
 				Imagenum = 5;
 			}
 		}
@@ -807,15 +791,15 @@ void Display()
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // 블렌딩
 
-		Imagenum = 2;																				// 철창
-		glBindVertexArray(VAO[0]);
-		TR = glm::mat4(1.0f);
-		TR = glm::translate(TR, glm::vec3(1.5f, -0.1f, 0.0f));
-		TR = glm::scale(TR, glm::vec3(1.0, 1.0, 0.01));
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
-
-		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+		Imagenum = 1;
+		for (int i = 0; i < itemnum + 1; ++i) {
+			item[i].Update();
+			TR = glm::mat4(1.0f);																		// 오브젝트 그리기
+			TR = glm::translate(TR, glm::vec3(item[i].t));
+			TR = glm::scale(TR, glm::vec3(item[i].s));
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+			item[i].Draw();
+		}
 
 		glBindVertexArray(VAO[3]);
 
@@ -922,7 +906,7 @@ void Display()
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // 블렌딩
 
-		Imagenum = 1;
+		
 		for (int i = 0; i < itemnum+1; ++i) {
 			item[i].Update();
 			TR = glm::mat4(1.0f);																		// 오브젝트 그리기
@@ -931,7 +915,7 @@ void Display()
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 			item[i].Draw();
 		}
-
+		Imagenum = 4;
 		glBindVertexArray(VAO[0]);
 		TR = glm::mat4(1.0f);																		// 맵
 		TR = glm::translate(TR, glm::vec3(0.0f, 4.5f, 0.0f));
@@ -941,12 +925,6 @@ void Display()
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
-		Imagenum = 2;																				// 철창
-		glBindVertexArray(VAO[0]);
-		TR = glm::mat4(1.0f);
-		TR = glm::translate(TR, glm::vec3(1.5f, -0.1f, 0.0f));
-		TR = glm::scale(TR, glm::vec3(1.0, 1.0, 0.01));
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
@@ -1014,12 +992,15 @@ void Mouse(int button, int state, int x, int y)
 			item[itemnum].z = ((float)y - ((float)WINDOWY / (float)2)) / ((float)WINDOWY / (float)2) * 5;
 			
 			item[itemnum].state = 1;
-			itemnum++;
-
+			cl = true;
 			Click = 1;
 		}
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
 			Click = 0;
+			if (cl == true) {
+				itemnum++;
+				cl = false;
+			}
 		}
 	}
 }
@@ -1084,6 +1065,9 @@ void keyboard(unsigned char key2, int x, int y) {
 		case '4':
 			itemkind = 3;
 			break;
+		case '5':
+			itemkind = 4;
+			break;
 		case '=':
 			item[itemnum].plus += 0.01;
 			break;
@@ -1093,23 +1077,21 @@ void keyboard(unsigned char key2, int x, int y) {
 		}
 
 	}
-	else {
-		if (key2 == 27) {
-			exit(0);
-		}
-		switch (key2) {
-		case ',':
-			game = 0;
-			break;
+	if (key2 == 27) {
+		exit(0);
+	}
+	switch (key2) {
+	case ',':
+		game = 0;
+		break;
 
-		case '.':
-			game = 1;
-			Imagenum = 0;
-			break;
-		case '/':
-			game = 2;
-			break;
-		}
+	case '.':
+		game = 1;
+		Imagenum = 0;
+		break;
+	case '/':
+		game = 2;
+		break;
 	}
 	glutPostRedisplay();
 }
@@ -1139,9 +1121,6 @@ void TimerFunction(int value) {
 		else {
 			fb[0] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.05;
 			fb[2] += cos((float)glm::radians(fpsy + fpsy2)) * 0.05;
-		}
-		if ((fb[0] < -5.0) || (fb[0] > 5.0) || (fb[2] < -5.0) || (fb[2] > 5.0)) {
-			fireball = false;
 		}
 	}
 
