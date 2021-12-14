@@ -103,8 +103,6 @@ float jumpcount = 0;			// 캐릭터 점프 이동거리
 float cx = 0;					// 카메라 x
 float cz = 0;					// 카메라 z
 float ry = 0;					// 회전
-float boxx[4];
-float boxy[4];
 
 int clone[5];					// 좀비
 float mx[6];					// 캐릭터들 x
@@ -269,18 +267,33 @@ float msx, msy = 0;
 bool start = false;
 
 bool checkBtoB(Item B1, Item B2);
+bool checkZtoB(float x,float y, float z, Item B2);
 bool checkBtoB(Item B1 , Item B2) {
 
 	if (B2.x - B2.s.x < B1.x + B1.s.x && B1.x - B1.s.x < B2.x + B2.s.x &&
 		B2.y - B2.s.y < B1.y + B1.s.y && B1.y - B1.s.y < B2.y + B2.s.y &&
 		B2.z - B2.s.z < B1.z + B1.s.z && B1.z - B1.s.z < B2.z + B2.s.z
 		) {
-		printf("난 충돌!\n");
+	
 		return true;
 	}
 	else {
 		return false;
 	}
+}
+bool checkZtoB(float x, float y, float z, Item B2) {
+
+	if (B2.x - B2.s.x < x + 0.03 && x - 0.03 < B2.x + B2.s.x &&
+		B2.y - B2.s.y < y + 0.5 && y - 0.03 < B2.y + B2.s.y &&
+		B2.z - B2.s.z < z + 0.03 && z - 0.03 < B2.z + B2.s.z
+		) {
+		
+		return true;
+	}
+	else {
+		return false;
+	}
+	
 }
 int main(int argc, char** argv)
 {
@@ -445,11 +458,7 @@ void Display()
 
 		glEnable(GL_DEPTH_TEST);
 
-		for (int i = 0; i < 4; ++i) {
-			boxx[i] = uid(dre);
-			boxy[i] = uid(dre);
 
-		}
 
 		for (int i = 0; i < 12; ++i) {										// (0,1) (2,3) (4,5) (6,7) (8,9) (10,11) = 캐릭터
 			if (i < 6) {
@@ -625,13 +634,15 @@ void Display()
 		}
 
 		glBindVertexArray(VAO[0]);
+		glm::mat4 TR2 = glm::mat4(1.0f);
+		TR2 = glm::scale(TR, glm::vec3(2.0, 2.0, 2.0));
 		// 클론 만들어지기
 		for (int i = 1; i < 6; ++i) {
 			if (clone[i - 1] == 1) {
 				Imagenum = 5;
 				glBindVertexArray(VAO[0]);
 				// 왼 다리 그리기
-				TR = glm::mat4(1.0f);
+				TR =  glm::mat4(1.0f);
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::translate(TR, glm::vec3(mx[i], my[i], mz[i]));
 
@@ -649,7 +660,7 @@ void Display()
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
 				// 오른 다리 그리기
-				TR = glm::mat4(1.0f);
+				TR =  glm::mat4(1.0f);
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::translate(TR, glm::vec3(mx[i], my[i], mz[i]));
 				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -666,7 +677,7 @@ void Display()
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
 				// 왼 팔 그리기
-				TR = glm::mat4(1.0f);
+				TR =  glm::mat4(1.0f);
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::translate(TR, glm::vec3(mx[i], my[i], mz[i]));
 				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -683,7 +694,7 @@ void Display()
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
 				// 오른 팔 그리기
-				TR = glm::mat4(1.0f);
+				TR =  glm::mat4(1.0f);
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::translate(TR, glm::vec3(mx[i], my[i], mz[i]));
 				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -701,7 +712,7 @@ void Display()
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
 				// 몸 그리기
-				TR = glm::mat4(1.0f);
+				TR =  glm::mat4(1.0f);
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::translate(TR, glm::vec3(mx[i], my[i] + 0.075, mz[i]));
 				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -723,7 +734,7 @@ void Display()
 			Imagenum = 5;
 			if (i == 0 || (i != 0 && clone[i - 1] == 2)) {
 				// 왼 다리 그리기
-				TR = glm::mat4(1.0f);
+				TR =  glm::mat4(1.0f);
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::translate(TR, glm::vec3(mx[i] - boom[i], my[i] - boom[i], mz[i]));
 
@@ -742,7 +753,7 @@ void Display()
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
 				// 오른 다리 그리기
-				TR = glm::mat4(1.0f);
+				TR =  glm::mat4(1.0f);
 
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::translate(TR, glm::vec3(mx[i] + boom[i], my[i] - boom[i], mz[i]));
@@ -760,7 +771,7 @@ void Display()
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
 				// 왼 팔 그리기
-				TR = glm::mat4(1.0f);
+				TR =  glm::mat4(1.0f);
 
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::translate(TR, glm::vec3(mx[i] - boom[i], my[i] + boom[i], mz[i]));
@@ -778,7 +789,7 @@ void Display()
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
 				// 오른 팔 그리기
-				TR = glm::mat4(1.0f);
+				TR =  glm::mat4(1.0f);
 
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::translate(TR, glm::vec3(mx[i] + boom[i], my[i] + boom[i], mz[i]));
@@ -796,7 +807,7 @@ void Display()
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
 				// 몸 그리기
-				TR = glm::mat4(1.0f);
+				TR =  glm::mat4(1.0f);
 
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::translate(TR, glm::vec3(mx[i], my[i] + 0.08, mz[i]));
@@ -1169,11 +1180,7 @@ void TimerFunction(int value) {
 	}
 
 	if (boom[0] >= 1) {								// 죽으면 초기화
-		for (int i = 0; i < 4; ++i) {
-			boxx[i] = uid(dre);
-			boxy[i] = uid(dre);
-
-		}
+		
 
 		for (int i = 0; i < 12; ++i) {										// (0,1) (2,3) (4,5) (6,7) (8,9) (10,11) = 캐릭터
 			if (i < 6) {
@@ -1301,24 +1308,60 @@ void TimerFunction(int value) {
 			walk[i] = true;
 
 			if ((mx[i] <= mx[0])) {
-				mx[i] += clonespeed[i - 1];
+				bool collide = false;
+				for (int j = 0; j < itemnum; ++j) {
+					collide = checkZtoB(mx[i] + clonespeed[i - 1], my[i], mz[i], item[j]);
+					if (collide) {
+						break;
+					}
+				}
+				if (!collide) {
+					mx[i] += clonespeed[i - 1];
+				}
 				dir[i] = 1;
 			}
 
 			if ((mz[i] <= mz[0])) {
-				mz[i] += clonespeed[i - 1];
+				bool collide = false;
+				for (int j = 0; j < itemnum; ++j) {
+					collide = checkZtoB(mx[i], my[i], mz[i] + clonespeed[i - 1], item[j]);
+					if (collide) {
+						break;
+					}
+				}
+				if (!collide) {
+					mz[i] += clonespeed[i - 1];
+				}
 				dir[i] = 4;
 
 			}
 
 			if ((mx[i] >= mx[0])) {
-				mx[i] -= clonespeed[i - 1];
+				bool collide = false;
+				for (int j = 0; j < itemnum; ++j) {
+					collide = checkZtoB(mx[i] - clonespeed[i - 1], my[i], mz[i], item[j]);
+					if (collide) {
+						break;
+					}
+				}
+				if (!collide) {
+					mx[i] -= clonespeed[i - 1];
+				}
 				dir[i] = 2;
 
 			}
 
 			if ((mz[i] >= mz[0])) {
-				mz[i] -= clonespeed[i - 1];
+				bool collide = false;
+				for (int j = 0; j < itemnum; ++j) {
+					collide = checkZtoB(mx[i], my[i], mz[i] - clonespeed[i - 1], item[j]);
+					if (collide) {
+						break;
+					}
+				}
+				if (!collide) {
+					mz[i] -= clonespeed[i - 1];
+				}
 				dir[i] = 3;
 			}
 
@@ -1361,16 +1404,11 @@ void TimerFunction(int value) {
 
 		}
 
-		for (int j = 0; j < 4; ++j) {																			// 플레이어와 장애물
-			if ((mx[0] - 0.025 < boxx[j] + 0.05) && (mz[0] - 0.015 < boxy[j] + 0.05) &&
-				(mx[0] + 0.025 > boxx[j] - 0.05) && (mz[0] + 0.015 > boxy[j] - 0.05)) {
-				die[0] = true;
-			}
-		}
 
 		for (int j = 1; j < 6; ++j) {																			// 플레이어와 좀비
-			if ((mx[0] - 0.05 < mx[j] + 0.05) && (mz[0] - 0.03 < mz[j] + 0.03) &&
-				(mx[0] + 0.05 > mx[j] - 0.05) && (mz[0] + 0.03 > mz[j] - 0.03)) {
+			if ((mx[0] - 0.025 < mx[j] + 0.025) && (mz[0] - 0.015 < mz[j] + 0.015) &&
+				(mx[0] + 0.025 > mx[j] - 0.025) && (mz[0] + 0.015 > mz[j] - 0.015) &&
+				(my[0] - 0.1 < my[j] + 0.015) && (my[0] + 0.1 > my[j] - 0.015)) {
 				if (clone[j - 1] == 2) {
 					die[0] = true;
 				}
@@ -1380,7 +1418,8 @@ void TimerFunction(int value) {
 
 		if (i != 0 && clone[i - 1] == 0) {																		// 플레이어와 비활성 좀비
 			if ((mx[0] - 0.025 < mx[i] + 0.05) && (mz[0] - 0.015 < mz[i] + 0.05) &&
-				(mx[0] + 0.025 > mx[i] - 0.05) && (mz[0] + 0.015 > mz[i] - 0.05)) {
+				(mx[0] + 0.025 > mx[i] - 0.05) && (mz[0] + 0.015 > mz[i] - 0.05) &&
+				(my[0] - 0.1 < my[i] + 0.015) && (my[0] + 0.1 > my[i] - 0.015)) {
 				clone[i - 1] = 1;
 			}
 
@@ -1388,7 +1427,10 @@ void TimerFunction(int value) {
 
 		if (i != 0 && clone[i - 1] == 2) {																		// 좀비와 파이어볼
 			if ((mx[i] - 0.025 < fb[0] + 0.05) && (mz[i] - 0.015 < fb[2] + 0.05) &&
-				(mx[i] + 0.025 > fb[0] - 0.05) && (mz[i] + 0.015 > fb[2] - 0.05) && fireball == true) {
+				(mx[i] + 0.025 > fb[0] - 0.05) && (mz[i] + 0.015 > fb[2] - 0.05) &&
+				(my[i] - 0.4 < fb[1] + 0.05) && (my[i] + 0.4 > fb[1] - 0.05) &&
+				
+				fireball == true) {
 				die[i] = true;
 				fireball = false;
 			}
