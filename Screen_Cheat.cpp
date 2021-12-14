@@ -170,6 +170,7 @@ public:
 	float front = 0;
 	float back = 0;
 	float x = 0;
+	float y = 0;
 	float z = 0;
 	float plus = 0;
 
@@ -183,7 +184,7 @@ public:
 		}
 
 		if (this->kind == 0) {								// 나무 상자
-			this->s = glm::vec3(0.1f + this -> plus, 0.1f + this->plus, 0.1f + this->plus);
+			this->s = glm::vec3(0.3f + this -> plus, 0.3f + this->plus, 0.3f + this->plus);
 		}
 		else if (this->kind == 1) {							// 세로 철창
 			this->s = glm::vec3(1.0f + this->plus, 1.0f + this->plus, 0.001f);
@@ -195,7 +196,7 @@ public:
 			this->s = glm::vec3(0.7f + this->plus, 0.4f + this->plus, 0.6f + this->plus);
 		}
 
-		this->t = glm::vec3(this -> x, 0.0f, this-> z);
+		this->t = glm::vec3(this -> x, this->y, this-> z);
 	}
 
 	void Draw() {
@@ -220,9 +221,29 @@ public:
 			glDrawArrays(GL_TRIANGLES, 0, num_Tank);
 		}
 	}
+
+	bool check(float mx, float my, float mz) {
+		float x1, x2, y1, y2, z1, z2;
+		x1 = this->x - this->s.x;
+		x2 = this->x + this->s.x;
+		y1 = this->y - this->s.y;
+		y2 = this->y + this->s.y;
+		z1 = this->z - this->s.z;
+		z2 = this->z + this->s.z;
+		if (x1 < mx + 0.03 && mx - 0.03 < x2 &&
+			y1 < my + 0.03 && my - 0.03 < y2 &&
+			z1 < mz + 0.03 && mz - 0.03 < z2
+			) {							
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 };
 
 Item item[1000];
+Item setblock;
 
 
 
@@ -409,10 +430,10 @@ void Display()
 				walk[i] = false;
 				walk2[i] = false;
 				jump[i] = false;
-				savey[i] = 0.0;
+				savey[i] = -0.8;
 				dir[i] = 1;
 				mx[i] = uid(dre);
-				my[i] = 0.5;
+				my[i] = -0.8;
 				mz[i] = uid(dre);
 				leg[i] = 0;
 				turn[i] = 0;
@@ -546,7 +567,7 @@ void Display()
 			if (clone[i - 1] == 0) {
 				TR = glm::mat4(1.0f);
 				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
-				TR = glm::translate(TR, glm::vec3(mx[i], -0.4, mz[i]));
+				TR = glm::translate(TR, glm::vec3(mx[i], -1.3 + 0.5, mz[i]));
 				TR = glm::rotate(TR, (float)glm::radians(boxturn), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::scale(TR, glm::vec3(0.1, 0.1, 0.1));
 
@@ -556,22 +577,21 @@ void Display()
 			}
 		}
 
-		glBindVertexArray(VAO[0]);
-		// 장애물
-		for (int i = 0; i < 4; ++i) {
-			Imagenum = 2;
-			TR = glm::mat4(1.0f);
-			TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
-			TR = glm::translate(TR, glm::vec3(boxx[i], -0.4, boxy[i]));
-			TR = glm::rotate(TR, (float)glm::radians(boxturn), glm::vec3(0.0f, 1.0f, 0.0f));
-			TR = glm::rotate(TR, 90.0f, glm::vec3(1.0f, 0.0f, 1.0f));
-			TR = glm::scale(TR, glm::vec3(0.1, 0.1, 0.1));
+		//glBindVertexArray(VAO[0]);
+		//// 장애물
+		//for (int i = 0; i < 4; ++i) {
+		//	Imagenum = 2;
+		//	TR = glm::mat4(1.0f);
+		//	TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
+		//	TR = glm::translate(TR, glm::vec3(boxx[i], -0.4, boxy[i]));
+		//	TR = glm::rotate(TR, (float)glm::radians(boxturn), glm::vec3(0.0f, 1.0f, 0.0f));
+		//	TR = glm::rotate(TR, 90.0f, glm::vec3(1.0f, 0.0f, 1.0f));
+		//	TR = glm::scale(TR, glm::vec3(0.1, 0.1, 0.1));
 
-			modelLocation = glGetUniformLocation(s_program[0], "model");
-			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
-			glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-			glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
-		}
+		//	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
+		//	glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+		//	glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
+		//}
 
 		glBindVertexArray(VAO[0]);
 		// 클론 만들어지기
@@ -593,7 +613,6 @@ void Display()
 				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::scale(TR, glm::vec3(0.01, 0.05, 0.01));
 
-				modelLocation = glGetUniformLocation(s_program[0], "model");
 				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
@@ -610,7 +629,7 @@ void Display()
 				TR = glm::translate(TR, glm::vec3(0.0, -0.025, 0.0));
 				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
 				TR = glm::scale(TR, glm::vec3(0.01, 0.05, 0.01));
-				modelLocation = glGetUniformLocation(s_program[0], "model");
+
 				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
@@ -662,26 +681,14 @@ void Display()
 				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
-				// 머리 그리기
-				glBindVertexArray(VAO[3]);
-				Imagenum = 6;
-				TR = glm::mat4(1.0f);
-				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
-				TR = glm::translate(TR, glm::vec3(mx[i], my[i] + makehead[i - 1], mz[i]));
-				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
-				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
-				TR = glm::scale(TR, glm::vec3(0.04, 0.04, 0.04));
-				modelLocation = glGetUniformLocation(s_program[0], "model");
-				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
-				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-				glDrawArrays(GL_TRIANGLES, 0, num_Sphere);
-				Imagenum = 5;
+				
 			}
 		}
 		// 클론 그림
 		glBindVertexArray(VAO[0]);
 
-		for (int i = 1; i < 6; ++i) {																			// 캐릭터
+		// 캐릭터
+		for (int i = 1; i < 6; ++i) {									
 			Imagenum = 5;
 			if (i == 0 || (i != 0 && clone[i - 1] == 2)) {
 				// 왼 다리 그리기
@@ -770,20 +777,6 @@ void Display()
 				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 				glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
-				// 머리 그리기
-				Imagenum = 6;
-				TR = glm::mat4(1.0f);
-				glBindVertexArray(VAO[3]);
-				TR = glm::rotate(TR, (float)glm::radians(ry), glm::vec3(0.0f, 1.0f, 0.0f));
-				TR = glm::translate(TR, glm::vec3(mx[i], my[i] + 0.15 + boom[i], mz[i] - 0.015));
-				TR = glm::rotate(TR, (float)glm::radians(turn[i]), glm::vec3(0.0f, 1.0f, 0.0f));
-				TR = glm::rotate(TR, (float)glm::radians(-fpsy), glm::vec3(0.0f, 1.0f, 0.0f));
-				TR = glm::scale(TR, glm::vec3(0.04, 0.04, 0.04));
-				modelLocation = glGetUniformLocation(s_program[0], "model");
-				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
-				glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-				glDrawArrays(GL_TRIANGLES, 0, num_Sphere);
-				Imagenum = 5;
 			}
 		}
 
@@ -806,8 +799,7 @@ void Display()
 		if (fireball == true) {
 			TR = glm::mat4(1.0f);
 			TR = glm::translate(TR, glm::vec3(fb[0], fb[1], fb[2]));
-			TR = glm::rotate(TR, (float)glm::radians(boxturn), glm::vec3(0.0f, 1.0f, 0.0f));
-			TR = glm::scale(TR, glm::vec3(0.03, 0.03, 0.03));
+			TR = glm::scale(TR, glm::vec3(0.01, 0.01, 0.01));
 
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
 			glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
@@ -890,7 +882,7 @@ void Display()
 		glm::vec3 cameraDirection = glm::vec4(0.0, -1.0, 0.0, 0.0f);
 		glm::vec3 cameraUp = glm::vec3(0.0f, 0.0f, -1.0f);
 
-		Vw = glm::lookAt(cameraPos, cameraPos + cameraDirection, cameraUp);
+		Vw = glm::lookAt(cameraPos, cameraDirection, cameraUp);
 		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &Vw[0][0]);
 
 		glm::mat4 Pj = glm::mat4(1.0f);
@@ -972,9 +964,9 @@ void Mouse(int button, int state, int x, int y)
 			mousey = -((float)y - ((float)WINDOWY / (float)2)) / ((float)WINDOWY / (float)2) * 1.5;
 			Click = 1;
 			fireball = true;
-			fb[0] = mx[0];
-			fb[1] = my[0];
-			fb[2] = mz[0];
+			fb[0] = gunPos.x;
+			fb[1] = gunPos.y;
+			fb[2] = gunPos.z;
 			fb[3] = 1;
 			shoot = true;
 		}
@@ -989,6 +981,7 @@ void Mouse(int button, int state, int x, int y)
 	else if (game == 2) {
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 			item[itemnum].x = ((float)x - ((float)WINDOWX / (float)2)) / ((float)WINDOWX / (float)2) * 5;
+			item[itemnum].y = -1.3 + item[itemnum].s.y;
 			item[itemnum].z = ((float)y - ((float)WINDOWY / (float)2)) / ((float)WINDOWY / (float)2) * 5;
 			
 			item[itemnum].state = 1;
@@ -1001,6 +994,8 @@ void Mouse(int button, int state, int x, int y)
 				itemnum++;
 				cl = false;
 			}
+			item[itemnum].x = ((float)x - ((float)WINDOWX / (float)2)) / ((float)WINDOWX / (float)2) * 5;
+			item[itemnum].z = ((float)y - ((float)WINDOWY / (float)2)) / ((float)WINDOWY / (float)2) * 5;
 		}
 	}
 }
@@ -1030,10 +1025,10 @@ void Motion2(int x, int y)
 			fpsup += yoffset;
 
 
-			if (fpsup > 89.0f)
-				fpsup = 89.0f;
-			if (fpsup < -89.0f)
-				fpsup = -89.0f;
+			if (fpsup > 70.0f)
+				fpsup = 70.0f;
+			if (fpsup < -25.0f)
+				fpsup = -25.0f;
 
 		}
 
@@ -1102,26 +1097,12 @@ void keyboard2(unsigned char key2, int x, int y) {
 
 void TimerFunction(int value) {
 	if (fireball == true) {
-		if (fb[3] == 1) {
-			fb[0] += cos((float)glm::radians(fpsy + fpsy2)) * 0.05;
-			fb[2] += sin((float)glm::radians(fpsy + fpsy2)) * 0.05;
-		}
-		else if (fb[3] == 2) {
-			fb[0] -= cos((float)glm::radians(fpsy + fpsy2)) * 0.05;
-			fb[2] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.05;
-		}
-		else if (fb[3] == 3) {
-			fb[0] += sin((float)glm::radians(fpsy + fpsy2)) * 0.05;
-			fb[2] -= cos((float)glm::radians(fpsy + fpsy2)) * 0.05;
-		}
-		else if (fb[3] == 4) {
-			fb[0] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.05;
-			fb[2] += cos((float)glm::radians(fpsy + fpsy2)) * 0.05;
-		}
-		else {
-			fb[0] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.05;
-			fb[2] += cos((float)glm::radians(fpsy + fpsy2)) * 0.05;
-		}
+
+		fb[0] += cos(glm::radians(fpsup)) * cos(glm::radians(fpsy)) * 0.1;
+		fb[1] += sin(glm::radians(fpsup)) * 0.1;
+		fb[2] += cos(glm::radians(fpsup)) * sin(glm::radians(fpsy)) * 0.1;
+
+		
 	}
 
 	for (int i = 0; i < 6; ++i) {											// 죽으면 터짐
@@ -1130,7 +1111,7 @@ void TimerFunction(int value) {
 		}
 		if ((i != 0) && boom[i] >= 1) {
 			mx[i] = uid(dre);
-			my[i] = 0;
+			my[i] = -0.8;
 			mz[i] = uid(dre);
 			clone[i - 1] = 0;
 			die[i] = false;
@@ -1157,10 +1138,10 @@ void TimerFunction(int value) {
 				die[i] = false;
 				walk2[i] = false;
 				jump[i] = false;
-				savey[i] = -0.5;
+				savey[i] = -0.8;
 				dir[i] = 1;
 				mx[i] = uid(dre);
-				my[i] = 0;
+				my[i] = -0.8;
 				mz[i] = uid(dre);;
 				leg[i] = 0;
 				turn[i] = 0;
@@ -1359,29 +1340,67 @@ void TimerFunction(int value) {
 		walkmove = 0;
 	}
 
-
+	bool collide = false;
+	
 	if (key['a'] == true) {						// 위로 이동
 		walk[0] = true;
-		mx[0] += sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
-		mz[0] -= cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		
+		for (int i = 0; i < itemnum; ++i) {
+			collide = item[i].check(mx[0] + sin((float)glm::radians(fpsy + fpsy2)) * 0.015, my[0], mz[0] - cos((float)glm::radians(fpsy + fpsy2)) * 0.015);
+			if (collide) {
+			
+				break;
+			}
+		}
+		if (!collide) {
+			mx[0] += sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
+			mz[0] -= cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		}
 		dir[0] = 3;
 	}
 	if (key['d'] == true) {						// 아래로 이동
 		walk[0] = true;
-		mx[0] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
-		mz[0] += cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		for (int i = 0; i < itemnum; ++i) {
+			collide = item[i].check(mx[0] - sin((float)glm::radians(fpsy + fpsy2)) * 0.015, my[0], mz[0] + cos((float)glm::radians(fpsy + fpsy2)) * 0.015);
+			if (collide) {
+			
+				break;
+			}
+		}
+		if (!collide) {
+			mx[0] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
+			mz[0] += cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		}
 		dir[0] = 4;
 	}
 	if (key['s'] == true) {						// 왼쪽으로 이동
 		walk[0] = true;
-		mx[0] -= cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
-		mz[0] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		for (int i = 0; i < itemnum; ++i) {
+			collide = item[i].check(mx[0] - cos((float)glm::radians(fpsy + fpsy2)) * 0.015, my[0], mz[0] - sin((float)glm::radians(fpsy + fpsy2)) * 0.015);
+			if (collide) {
+
+				break;
+			}
+		}
+		if (!collide) {
+			mx[0] -= cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
+			mz[0] -= sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		}
 		dir[0] = 2;
 	}
 	if (key['w'] == true) {						// 오른쪽으로 이동
 		walk[0] = true;
-		mx[0] += cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
-		mz[0] += sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		for (int i = 0; i < itemnum; ++i) {
+			collide = item[i].check(mx[0] + cos((float)glm::radians(fpsy + fpsy2)) * 0.015, my[0], mz[0] + sin((float)glm::radians(fpsy + fpsy2)) * 0.015);
+			if (collide) {
+	
+				break;
+			}
+		}
+		if (!collide) {
+			mx[0] += cos((float)glm::radians(fpsy + fpsy2)) * 0.015;
+			mz[0] += sin((float)glm::radians(fpsy + fpsy2)) * 0.015;
+		}
 		dir[0] = 1;
 	}
 
@@ -1400,9 +1419,3 @@ void TimerFunction(int value) {
 	glutTimerFunc(10, TimerFunction, 1);
 
 }
-
-
-
-
-
-
