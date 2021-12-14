@@ -84,7 +84,7 @@ int widthImage, heightImage, numberOfChannel = 0;
 
 // 게임 변수
 
-int game = 2;					// 게임 state
+int game = 1;					// 게임 state
 
 int intmpx = 0;
 int intmpy = 0;
@@ -117,6 +117,7 @@ bool walk2[6];					// 캐릭터들 걷기 체크2
 bool jump[6];					// 캐릭터들 점프 체크
 float savey[6];					// 캐릭터들 점프 시 y저장
 int dir[6];						// 캐릭터들 방향
+int mummy;
 
 float mousex = 0;				// 마우스 x
 float mousey = 0;				// 마우스 y
@@ -138,6 +139,8 @@ float turnY2 = 0;
 float boxturn = 0;
 int num = 0;
 float zsize = 1;
+
+int count2 = 0;
 
 int now;
 float color2[3];
@@ -409,7 +412,7 @@ void InitBuffer_bind(const int street) {
 void InitTexture()
 {
 	BITMAPINFO* bmp;
-	string map[20] = { "A.png","B.png","C.png","D.png","E.png","body.png","face.png","gun_tex.png" };
+	string map[20] = { "main.png","B.png","C.png","D.png","E.png","body.png","face.png","gun_tex.png" };
 	glGenTextures(20, texture); //--- 텍스처 생성
 
 	for (int i = 0; i < 20; ++i) {
@@ -456,12 +459,12 @@ void Display()
 				savey[i] = -1.3;
 				dir[i] = 1;
 				mx[i] = uid(dre);
-				my[i] = -0.5;
+				my[i] = -0.65;
 				mz[i] = uid(dre);
 				leg[i] = 0;
 				turn[i] = 0;
 				if (i < 5) {
-					clone[i] = 0;
+					clone[i] = 1;
 					makelegX[i] = 0;
 					makelegY[i] = 0;
 					makehead[i] = 0;
@@ -475,16 +478,16 @@ void Display()
 			}
 		}
 
-
+		my[0] = -0.5;
 		for (int i = 0; i < 3; ++i) {
 			color2[i] = 1.0;
 		}
 
 		clonespeed[0] = 0.007;
 		clonespeed[1] = 0.009;
-		clonespeed[2] = 0.011;
-		clonespeed[3] = 0.013;
-		clonespeed[4] = 0.015;
+		clonespeed[2] = 0.008;
+		clonespeed[3] = 0.010;
+		clonespeed[4] = 0.012;
 		 
 		grav = 0.04;
 
@@ -809,6 +812,7 @@ void Display()
 		}
 
 
+
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // 블렌딩
 
@@ -945,9 +949,6 @@ void Display()
 		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
-
-		glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
-		glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 
 		glDisable(GL_BLEND); // 블렌딩 해제
 
@@ -1160,9 +1161,9 @@ void TimerFunction(int value) {
 		}
 		if ((i != 0) && boom[i] >= 1) {
 			mx[i] = uid(dre);
-			my[i] = -0.5;
+			my[i] = -0.65;
 			mz[i] = uid(dre);
-			clone[i - 1] = 0;
+			clone[i - 1] = 1;
 			die[i] = false;
 			boom[i] = 0;
 			makelegX[i - 1] = 0;
@@ -1175,7 +1176,52 @@ void TimerFunction(int value) {
 	}
 
 	if (boom[0] >= 1) {								// 죽으면 초기화
-		start = true;
+		for (int i = 0; i < 4; ++i) {
+			boxx[i] = uid(dre);
+			boxy[i] = uid(dre);
+
+		}
+
+		for (int i = 0; i < 12; ++i) {										// (0,1) (2,3) (4,5) (6,7) (8,9) (10,11) = 캐릭터
+			if (i < 6) {
+				walk[i] = false;
+				walk2[i] = false;
+				jump[i] = false;
+				savey[i] = -1.3;
+				dir[i] = 1;
+				mx[i] = uid(dre);
+				my[i] = -0.65;
+				mz[i] = uid(dre);
+				leg[i] = 0;
+				turn[i] = 0;
+				if (i < 5) {
+					clone[i] = 1;
+					makelegX[i] = 0;
+					makelegY[i] = 0;
+					makehead[i] = 0;
+					makearmX[i] = 0;
+					makearmY[i] = 0;
+					makenose[i] = 0;
+
+				}
+				boom[i] = 0;
+				die[i] = false;
+			}
+		}
+
+		my[0] = -0.5;
+		for (int i = 0; i < 3; ++i) {
+			color2[i] = 1.0;
+		}
+
+		clonespeed[0] = 0.007;
+		clonespeed[1] = 0.009;
+		clonespeed[2] = 0.008;
+		clonespeed[3] = 0.010;
+		clonespeed[4] = 0.012;
+
+		grav = 0.04;
+
 	}
 
 	for (int i = 1; i < 6; ++i) {					// 로봇 따라가기
@@ -1252,8 +1298,8 @@ void TimerFunction(int value) {
 		}
 
 		for (int j = 1; j < 6; ++j) {																			// 플레이어와 좀비
-			if ((mx[0] - 0.025 < mx[j] + 0.025) && (mz[0] - 0.015 < mz[j] + 0.015) &&
-				(mx[0] + 0.025 > mx[j] - 0.025) && (mz[0] + 0.015 > mz[j] - 0.015)) {
+			if ((mx[0] - 0.05 < mx[j] + 0.05) && (mz[0] - 0.03 < mz[j] + 0.03) &&
+				(mx[0] + 0.05 > mx[j] - 0.05) && (mz[0] + 0.03 > mz[j] - 0.03)) {
 				if (clone[j - 1] == 2) {
 					die[0] = true;
 				}
