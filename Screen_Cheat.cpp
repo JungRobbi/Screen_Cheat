@@ -98,6 +98,7 @@ bool walkmove2 = false;
 float shootmove = 0;			// 1p 총 흔들림
 bool shootmove2 = false;
 bool shoot = false;
+float jumpcount = 0;			// 캐릭터 점프 이동거리
 
 float cx = 0;					// 카메라 x
 float cz = 0;					// 카메라 z
@@ -173,12 +174,18 @@ public:
 	float y = 0;
 	float z = 0;
 	float plus = 0;
+	float savey = 0;
 
 	glm::vec3 s;
 	glm::vec3 r;
 	glm::vec3 t;
 
+	Item() {
+		this -> savey = this->y + this->s.y;
+	}
+
 	void Update() {
+		
 		if (this->state == 0) {
 			this->kind = itemkind;
 		}
@@ -592,6 +599,9 @@ void Display()
 		//	glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
 		//	glDrawArrays(GL_TRIANGLES, 0, num_Triangle);
 		//}
+		if (item[itemnum].state == 0) {
+			itemnum--;
+		}
 
 		glBindVertexArray(VAO[0]);
 		// 클론 만들어지기
@@ -802,7 +812,7 @@ void Display()
 			TR = glm::scale(TR, glm::vec3(0.01, 0.01, 0.01));
 
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TR));
-			glBindTexture(GL_TEXTURE_2D, texture[Imagenum]);
+			glBindTexture(GL_TEXTURE_2D, texture[6]);
 			glDrawArrays(GL_TRIANGLES, 0, num_Sphere);
 		}
 
@@ -1270,19 +1280,15 @@ void TimerFunction(int value) {
 		}
 
 		if (jump[i] == true) {
-			my[i] += 0.01;
+			my[i] += 0.02;
+			jumpcount += 0.02;
 
-			if (my[i] > 0.2) {
+			if (jumpcount > 1.2) {
 				jump[i] = false;
+				jumpcount = 0;
 			}
 		}
 
-		else {
-			my[i] -= 0.015;
-			if (my[i] < savey[i]) {
-				my[i] = savey[i];
-			}
-		}
 
 		walk[i] = false;
 	}
@@ -1340,15 +1346,37 @@ void TimerFunction(int value) {
 		walkmove = 0;
 	}
 
-	bool collide = false;
+
+	savey[0] = 0.0;
+
+	bool Ycollide = false;
 	
+	for (int i = 0; i < itemnum + 1; ++i) {
+		Ycollide = item[i].check(mx[0], my[0], mz[0]);
+		if (Ycollide) {
+			if (my[0]+0.8 > item[i].savey) {
+				savey[0] = item[i].savey+0.8;
+			}
+			break;
+		}
+	}
+
+	if (my[0] + 0.8 > savey[0] && jump[0] == false) {
+		my[0] -= 0.03;
+		if (my[0] + 0.8 <= savey[0]) {
+			my[0] = savey[0];
+		}
+	}
+
+	bool collide = false;
+
 	if (key['a'] == true) {						// 위로 이동
 		walk[0] = true;
 		
-		for (int i = 0; i < itemnum; ++i) {
+		for (int i = 0; i < itemnum+1; ++i) {
 			collide = item[i].check(mx[0] + sin((float)glm::radians(fpsy + fpsy2)) * 0.015, my[0], mz[0] - cos((float)glm::radians(fpsy + fpsy2)) * 0.015);
 			if (collide) {
-			
+
 				break;
 			}
 		}
@@ -1360,7 +1388,7 @@ void TimerFunction(int value) {
 	}
 	if (key['d'] == true) {						// 아래로 이동
 		walk[0] = true;
-		for (int i = 0; i < itemnum; ++i) {
+		for (int i = 0; i < itemnum + 1; ++i) {
 			collide = item[i].check(mx[0] - sin((float)glm::radians(fpsy + fpsy2)) * 0.015, my[0], mz[0] + cos((float)glm::radians(fpsy + fpsy2)) * 0.015);
 			if (collide) {
 			
@@ -1375,7 +1403,7 @@ void TimerFunction(int value) {
 	}
 	if (key['s'] == true) {						// 왼쪽으로 이동
 		walk[0] = true;
-		for (int i = 0; i < itemnum; ++i) {
+		for (int i = 0; i < itemnum + 1; ++i) {
 			collide = item[i].check(mx[0] - cos((float)glm::radians(fpsy + fpsy2)) * 0.015, my[0], mz[0] - sin((float)glm::radians(fpsy + fpsy2)) * 0.015);
 			if (collide) {
 
@@ -1390,10 +1418,10 @@ void TimerFunction(int value) {
 	}
 	if (key['w'] == true) {						// 오른쪽으로 이동
 		walk[0] = true;
-		for (int i = 0; i < itemnum; ++i) {
+		for (int i = 0; i < itemnum + 1; ++i) {
 			collide = item[i].check(mx[0] + cos((float)glm::radians(fpsy + fpsy2)) * 0.015, my[0], mz[0] + sin((float)glm::radians(fpsy + fpsy2)) * 0.015);
 			if (collide) {
-	
+
 				break;
 			}
 		}
