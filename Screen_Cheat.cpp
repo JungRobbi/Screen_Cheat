@@ -1039,13 +1039,6 @@ void Mouse(int button, int state, int x, int y)
 			item[itemnum].z = ((float)y - ((float)WINDOWY / (float)2)) / ((float)WINDOWY / (float)2) * 5;
 
 
-
-
-
-	
-		
-
-
 		}
 	}
 }
@@ -1222,6 +1215,84 @@ void TimerFunction(int value) {
 
 		grav = 0.04;
 
+	}
+
+	for (int i = 0; i < 6; ++i) {
+		if (i == 0 || clone[i - 1] == 2) {
+			if (walk[i] == true) {
+				if (walk2[i] == false) {
+					leg[i] += 6;
+					if (leg[i] > 60) {
+						walk2[i] = true;
+					}
+				}
+				else {
+					leg[i] -= 6;
+					if (leg[i] < -60) {
+						walk2[i] = false;
+					}
+				}
+			}
+
+			if (dir[i] == 1) {
+				if (turn[i] < 90) {
+					turn[i] += 10;
+					if (turn[i] > 90) {
+						turn[i] = 90;
+					}
+				}
+				else if (turn[i] > 90) {
+					turn[i] -= 10;
+					if (turn[i] < 90) {
+						turn[i] = 90;
+					}
+				}
+			}
+			else if (dir[i] == 2) {
+				if (turn[i] < 270) {
+					turn[i] += 10;
+					if (turn[i] > 270) {
+						turn[i] = 270;
+					}
+				}
+				else if (turn[i] > 270) {
+					turn[i] -= 10;
+					if (turn[i] < 270) {
+						turn[i] = 270;
+					}
+				}
+			}
+			else if (dir[i] == 3) {
+				if (turn[i] < 180) {
+					turn[i] += 10;
+					if (turn[i] > 180) {
+						turn[i] = 180;
+					}
+				}
+				else if (turn[i] > 180) {
+					turn[i] -= 10;
+					if (turn[i] < 180) {
+						turn[i] = 180;
+					}
+				}
+			}
+			else {
+				if (turn[i] < 360) {
+					turn[i] += 10;
+					if (turn[i] > 360) {
+						turn[i] = 360;
+					}
+				}
+				else if (turn[i] > 360) {
+					turn[i] -= 10;
+					if (turn[i] < 360) {
+						turn[i] = 360;
+					}
+				}
+			}
+
+
+		}
 	}
 
 	for (int i = 1; i < 6; ++i) {					// 로봇 따라가기
